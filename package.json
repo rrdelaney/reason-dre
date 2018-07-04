@@ -1,0 +1,33 @@
+{
+  "name": "reason-dre",
+  "version": "0.1.0",
+  "description": "Declarative Reason bindings",
+  "license": "MIT",
+  "esy": {
+    "build": [
+      [
+        "refmterr",
+        "jbuilder",
+        "build"
+      ]
+    ],
+    "install": [
+      "esy-installer"
+    ],
+    "buildsInSource": "_build"
+  },
+  "dependencies": {
+    "@esy-ocaml/esy-installer": "^0.0.0",
+    "@esy-ocaml/reason": "^3.0.0",
+    "@opam/flow_parser": "^0.62.0",
+    "@opam/jbuilder": "^1.0.0-beta14",
+    "refmterr": "^3.0.4"
+  },
+  "peerDependencies": {
+    "ocaml": "~4.6.0"
+  },
+  "devDependencies": {
+    "@esy-ocaml/merlin": "*",
+    "ocaml": "~4.6.0"
+  }
+}
