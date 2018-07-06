@@ -21,8 +21,6 @@
     "@esy-ocaml/reason": "^3.0.0",
     "@opam/flow_parser": "^0.62.0",
     "@opam/jbuilder": "^1.0.0-beta14",
-    "@opam/sedlex": "^1.99.4",
-    "@opam/wtf8": "^1.0.1",
     "refmterr": "^3.0.4"
   },
   "peerDependencies": {
