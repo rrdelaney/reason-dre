@@ -12,6 +12,6 @@ let parse = file => {
     raise(ParseErrors(errors));
   };
 
-  let (_, statements, _) = ast;
-  ();
+  let (_, _statements, _) = ast;
+  "one";
 };

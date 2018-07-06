@@ -10,3 +10,5 @@ _release
 *.native
 reason-dre.install
 .DS_Store
+
+test.dre
