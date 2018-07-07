@@ -472,24 +472,10 @@
   peerDependencies:
     ocaml " >= 4.1.0"
 
-"@opam/sedlex@*":
+"@opam/sedlex@*", "@opam/sedlex@^1.99.4":
   version "1.99.4"
   uid a8ea25e35e9eb51e2df32e8c308058fb
   resolved "@opam/sedlex@1.99.4-a8ea25e35e9eb51e2df32e8c308058fb.tgz"
-  dependencies:
-    "@esy-ocaml/esy-installer" "^0.0.0"
-    "@esy-ocaml/substs" "^0.0.1"
-    "@opam/gen" "*"
-    "@opam/ocaml-migrate-parsetree" "*"
-    "@opam/ocamlfind" "*"
-    "@opam/ppx_tools_versioned" "*"
-  peerDependencies:
-    ocaml " >= 4.2.3000"
-
-"@opam/sedlex@^1.99.4":
-  version "1.99.4"
-  uid "2166d1f726e2f28bb3ca62cab15c72ff"
-  resolved "@opam/sedlex@1.99.4-2166d1f726e2f28bb3ca62cab15c72ff.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
     "@esy-ocaml/substs" "^0.0.1"
@@ -557,21 +543,10 @@
   peerDependencies:
     ocaml " >= 4.1.0"
 
-"@opam/wtf8@*":
+"@opam/wtf8@*", "@opam/wtf8@^1.0.1":
   version "1.0.1"
   uid "9e0e762a35cd3b804dce23039179d671"
   resolved "@opam/wtf8@1.0.1-9e0e762a35cd3b804dce23039179d671.tgz"
-  dependencies:
-    "@esy-ocaml/esy-installer" "^0.0.0"
-    "@esy-ocaml/substs" "^0.0.1"
-    "@opam/jbuilder" " >= 1.0.0-beta7"
-  peerDependencies:
-    ocaml " >= 4.1.0"
-
-"@opam/wtf8@^1.0.1":
-  version "1.0.1"
-  uid e4d1761eadbdc963f220ece9bc54f8a2
-  resolved "@opam/wtf8@1.0.1-e4d1761eadbdc963f220ece9bc54f8a2.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
     "@esy-ocaml/substs" "^0.0.1"
