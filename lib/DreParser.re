@@ -24,6 +24,61 @@ let rec handleStatement =
     let body = moduleBody.body;
     body |> List.map(handleStatement(~moduleName)) |> List.flatten;
 
+  | Flow_parser.Ast.Statement.DeclareVariable(v) =>
+    let (loc, varName) = v.id;
+
+    [
+      {
+        pstr_desc:
+          Ast_404.Parsetree.Pstr_primitive({
+            pval_name: {
+              txt: varName,
+              loc: Ast_404.Location.none,
+            },
+            pval_type: {
+              ptyp_desc:
+                Ast_404.Parsetree.Ptyp_constr(
+                  {
+                    txt: Ast_404.Longident.Lident("int"),
+                    loc: Ast_404.Location.none,
+                  },
+                  [],
+                ),
+              ptyp_loc: Ast_404.Location.none,
+              ptyp_attributes: [],
+            },
+            pval_prim: [varName],
+            pval_attributes: [
+              (
+                {txt: "bs.module", loc: Ast_404.Location.none},
+                Ast_404.Parsetree.PStr([
+                  {
+                    pstr_desc:
+                      Ast_404.Parsetree.Pstr_eval(
+                        {
+                          pexp_desc:
+                            Ast_404.Parsetree.Pexp_constant(
+                              Ast_404.Parsetree.Pconst_string(
+                                moduleName,
+                                None,
+                              ),
+                            ),
+                          pexp_loc: Ast_404.Location.none,
+                          pexp_attributes: [],
+                        },
+                        [],
+                      ),
+                    pstr_loc: Ast_404.Location.none,
+                  },
+                ]),
+              ),
+            ],
+            pval_loc: Ast_404.Location.none,
+          }),
+        pstr_loc: Ast_404.Location.none,
+      },
+    ];
+
   | Flow_parser.Ast.Statement.DeclareFunction(f) =>
     let (loc, functionName) = f.id;
 
@@ -37,12 +92,32 @@ let rec handleStatement =
             },
             pval_type: {
               ptyp_desc:
-                Ast_404.Parsetree.Ptyp_constr(
+                Ast_404.Parsetree.Ptyp_arrow(
+                  Ast_404.Asttypes.Nolabel,
                   {
-                    txt: Ast_404.Longident.Lident("int"),
-                    loc: Ast_404.Location.none,
+                    ptyp_desc:
+                      Ast_404.Parsetree.Ptyp_constr(
+                        {
+                          txt: Ast_404.Longident.Lident("int"),
+                          loc: Ast_404.Location.none,
+                        },
+                        [],
+                      ),
+                    ptyp_loc: Ast_404.Location.none,
+                    ptyp_attributes: [],
                   },
-                  [],
+                  {
+                    ptyp_desc:
+                      Ast_404.Parsetree.Ptyp_constr(
+                        {
+                          txt: Ast_404.Longident.Lident("int"),
+                          loc: Ast_404.Location.none,
+                        },
+                        [],
+                      ),
+                    ptyp_loc: Ast_404.Location.none,
+                    ptyp_attributes: [],
+                  },
                 ),
               ptyp_loc: Ast_404.Location.none,
               ptyp_attributes: [],
