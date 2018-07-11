@@ -58,7 +58,10 @@ let rec handleStatement =
                         {
                           pexp_desc:
                             Ast_404.Parsetree.Pexp_constant(
-                              Ast_404.Parsetree.Pconst_string("mod", None),
+                              Ast_404.Parsetree.Pconst_string(
+                                moduleName,
+                                None,
+                              ),
                             ),
                           pexp_loc: Ast_404.Location.none,
                           pexp_attributes: [],
