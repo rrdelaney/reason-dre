@@ -1,1 +1,1 @@
-type one = {. "one": int};
+[@bs.module "mod"] external add : int = "add";

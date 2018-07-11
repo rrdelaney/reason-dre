@@ -32,7 +32,7 @@ let rec handleStatement =
         pstr_desc:
           Ast_404.Parsetree.Pstr_primitive({
             pval_name: {
-              txt: "thing",
+              txt: functionName,
               loc: Ast_404.Location.none,
             },
             pval_type: {
@@ -51,7 +51,23 @@ let rec handleStatement =
             pval_attributes: [
               (
                 {txt: "bs.module", loc: Ast_404.Location.none},
-                Ast_404.Parsetree.PStr([]),
+                Ast_404.Parsetree.PStr([
+                  {
+                    pstr_desc:
+                      Ast_404.Parsetree.Pstr_eval(
+                        {
+                          pexp_desc:
+                            Ast_404.Parsetree.Pexp_constant(
+                              Ast_404.Parsetree.Pconst_string("mod", None),
+                            ),
+                          pexp_loc: Ast_404.Location.none,
+                          pexp_attributes: [],
+                        },
+                        [],
+                      ),
+                    pstr_loc: Ast_404.Location.none,
+                  },
+                ]),
               ),
             ],
             pval_loc: Ast_404.Location.none,
