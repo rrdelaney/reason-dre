@@ -1,5 +1,6 @@
-exception ParseErrors(list((Loc.t, Parser_common.Error.t)));
-exception ModuleNameMustBeStringLiteral(Loc.t);
+exception
+  ParseErrors(list((Flow_parser.Loc.t, Flow_parser.Parser_common.Error.t)));
+exception ModuleNameMustBeStringLiteral(Flow_parser.Loc.t);
 
 type file = {
   source: string,
@@ -8,12 +9,13 @@ type file = {
 
 let rec handleStatement = ((loc, statement)) =>
   switch (statement) {
-  | Ast.Statement.DeclareModule(m) =>
+  | Flow_parser.Ast.Statement.DeclareModule(m) =>
     let moduleName =
       switch (m.id) {
-      | Ast.Statement.DeclareModule.Identifier(_) =>
+      | Flow_parser.Ast.Statement.DeclareModule.Identifier(_) =>
         raise(ModuleNameMustBeStringLiteral(loc))
-      | Ast.Statement.DeclareModule.Literal((loc, literal)) => literal.value
+      | Flow_parser.Ast.Statement.DeclareModule.Literal((loc, literal)) =>
+        literal.value
       };
 
     print_endline("DECLARED MODULE " ++ moduleName);
@@ -23,7 +25,7 @@ let rec handleStatement = ((loc, statement)) =>
     let _ = List.map(handleStatement, body);
     ();
 
-  | Ast.Statement.DeclareFunction(f) =>
+  | Flow_parser.Ast.Statement.DeclareFunction(f) =>
     let (loc, functionName) = f.id;
     print_endline("DECLARED FUNCTION " ++ functionName);
 
@@ -31,7 +33,8 @@ let rec handleStatement = ((loc, statement)) =>
   };
 
 let parse = file => {
-  let (ast, errors) = Parser_flow.program_file(file.source, None);
+  let (ast, errors) =
+    Flow_parser.Parser_flow.program_file(file.source, None);
 
   if (List.length(errors) > 0) {
     raise(ParseErrors(errors));
@@ -39,5 +42,48 @@ let parse = file => {
 
   let (_, statements, _) = ast;
 
-  List.map(handleStatement, statements);
+  let _ = List.map(handleStatement, statements);
+
+  let externalDecl: Ast_404.Parsetree.structure_item = {
+    pstr_desc:
+      Ast_404.Parsetree.Pstr_primitive({
+        pval_name: {
+          txt: "thing",
+          loc: Ast_404.Location.none,
+        },
+        pval_type: {
+          ptyp_desc:
+            Ast_404.Parsetree.Ptyp_constr(
+              {
+                txt: Ast_404.Longident.Lident("int"),
+                loc: Ast_404.Location.none,
+              },
+              [],
+            ),
+          ptyp_loc: Ast_404.Location.none,
+          ptyp_attributes: [],
+        },
+        pval_prim: ["thing"],
+        pval_attributes: [
+          (
+            {txt: "bs.module", loc: Ast_404.Location.none},
+            Ast_404.Parsetree.PStr([]),
+          ),
+        ],
+        pval_loc: Ast_404.Location.none,
+      }),
+    pstr_loc: Ast_404.Location.none,
+  };
+
+  let program = [externalDecl];
+
+  Reason_toolchain.RE.print_implementation_with_comments(
+    Format.str_formatter,
+    (program, []),
+  );
+
+  let output = Format.flush_str_formatter();
+  print_string(output);
+
+  ();
 };

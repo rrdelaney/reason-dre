@@ -6,6 +6,17 @@
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-installer/-/esy-installer-0.0.0.tgz#6b0e2bd4ee43531ac74793fe55cfcc3aca197a66"
 
+"@esy-ocaml/flow-parser@^0.76.0":
+  version "0.76.0"
+  resolved "https://registry.yarnpkg.com/@esy-ocaml/flow-parser/-/flow-parser-0.76.0.tgz#54b2902956e1315291b478e500d608be9ba2dc39"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@opam/jbuilder" "*"
+    "@opam/sedlex" "*"
+    "@opam/wtf8" "*"
+  peerDependencies:
+    ocaml ">= 4.3.0"
+
 "@esy-ocaml/merlin@*":
   version "3.0.5005"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/merlin/-/merlin-3.0.5005.tgz#4a9e2b4df20672524603b7b1797b7761d5d0d9ad"
@@ -203,17 +214,6 @@
   peerDependencies:
     ocaml " >= 4.3.0"
 
-"@opam/dtoa@*":
-  version "0.3.1"
-  uid "06195646a0dbdac95c0d70d738c81fdb"
-  resolved "@opam/dtoa@0.3.1-06195646a0dbdac95c0d70d738c81fdb.tgz"
-  dependencies:
-    "@esy-ocaml/esy-installer" "^0.0.0"
-    "@esy-ocaml/substs" "^0.0.1"
-    "@opam/jbuilder" " >= 1.0.0-beta7"
-  peerDependencies:
-    ocaml " >= 4.1.0"
-
 "@opam/easy-format@*":
   version "1.3.1"
   uid "0c2f9b085eba4175086013e7ef48ba05"
@@ -224,21 +224,6 @@
     "@opam/jbuilder" "*"
   peerDependencies:
     ocaml " >= 4.2.3000"
-
-"@opam/flow_parser@^0.62.0":
-  version "0.62.0"
-  uid "2a3154e3437a07763687676d0ee5aa70"
-  resolved "@opam/flow_parser@0.62.0-2a3154e3437a07763687676d0ee5aa70.tgz"
-  dependencies:
-    "@esy-ocaml/esy-installer" "^0.0.0"
-    "@esy-ocaml/substs" "^0.0.1"
-    "@opam/dtoa" "*"
-    "@opam/ocamlbuild" "*"
-    "@opam/ocamlfind" "*"
-    "@opam/sedlex" "*"
-    "@opam/wtf8" "*"
-  peerDependencies:
-    ocaml " >= 4.3.0"
 
 "@opam/fmt@ >= 0.8.0":
   version "0.8.5"

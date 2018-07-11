@@ -3,4 +3,4 @@
 (executable
  ((name Dre)
   (public_name Dre)
-  (libraries (sedlex wtf8 lib))))
+  (libraries (lib))))
