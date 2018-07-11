@@ -1,1 +1,1 @@
-[@bs.module] external thing : int = "thing";
+type one = {. "one": int};
