@@ -10,7 +10,7 @@ let makeNamedType = typeName : Ast_404.Parsetree.core_type => {
   ptyp_attributes: [],
 };
 
-let makeFunctionType = (args, _returnType) : Ast_404.Parsetree.core_type => {
+let makeFunctionType = (args, returnType) : Ast_404.Parsetree.core_type => {
   ptyp_desc:
     Ast_404.Parsetree.Ptyp_arrow(
       Ast_404.Asttypes.Nolabel,
@@ -62,6 +62,23 @@ let makeFunctionType = (args, _returnType) : Ast_404.Parsetree.core_type => {
   ptyp_loc: Ast_404.Location.none,
   ptyp_attributes: [],
 };
+
+let makeFunctionType2 = (params, returnType) =>
+  List.fold_right(
+    (paramType, t) =>
+      Ast_404.Parsetree.{
+        ptyp_desc:
+          Ast_404.Parsetree.Ptyp_arrow(
+            Ast_404.Asttypes.Nolabel,
+            paramType,
+            t,
+          ),
+        ptyp_loc: Ast_404.Location.none,
+        ptyp_attributes: [],
+      },
+    params,
+    returnType,
+  );
 
 let makeBsModuleAttibute =
     (~moduleName, ~defaultExport)

@@ -44,7 +44,14 @@ let rec handleStatement =
         ~moduleName,
         ~defaultExport=false,
         ~externName=functionName,
-        ~externType=AstUtils.makeFunctionType("int", "int"),
+        ~externType=
+          AstUtils.makeFunctionType2(
+            [
+              AstUtils.makeNamedType("int"),
+              AstUtils.makeNamedType("string"),
+            ],
+            AstUtils.makeNamedType("int"),
+          ),
       ),
     ];
 
