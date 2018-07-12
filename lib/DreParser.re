@@ -28,130 +28,24 @@ let rec handleStatement =
     let (loc, varName) = v.id;
 
     [
-      {
-        pstr_desc:
-          Ast_404.Parsetree.Pstr_primitive({
-            pval_name: {
-              txt: varName,
-              loc: Ast_404.Location.none,
-            },
-            pval_type: {
-              ptyp_desc:
-                Ast_404.Parsetree.Ptyp_constr(
-                  {
-                    txt: Ast_404.Longident.Lident("int"),
-                    loc: Ast_404.Location.none,
-                  },
-                  [],
-                ),
-              ptyp_loc: Ast_404.Location.none,
-              ptyp_attributes: [],
-            },
-            pval_prim: [varName],
-            pval_attributes: [
-              (
-                {txt: "bs.module", loc: Ast_404.Location.none},
-                Ast_404.Parsetree.PStr([
-                  {
-                    pstr_desc:
-                      Ast_404.Parsetree.Pstr_eval(
-                        {
-                          pexp_desc:
-                            Ast_404.Parsetree.Pexp_constant(
-                              Ast_404.Parsetree.Pconst_string(
-                                moduleName,
-                                None,
-                              ),
-                            ),
-                          pexp_loc: Ast_404.Location.none,
-                          pexp_attributes: [],
-                        },
-                        [],
-                      ),
-                    pstr_loc: Ast_404.Location.none,
-                  },
-                ]),
-              ),
-            ],
-            pval_loc: Ast_404.Location.none,
-          }),
-        pstr_loc: Ast_404.Location.none,
-      },
+      AstUtils.makeExtern(
+        ~moduleName,
+        ~defaultExport=false,
+        ~externName=varName,
+        ~externType=AstUtils.makeNamedType("int"),
+      ),
     ];
 
   | Flow_parser.Ast.Statement.DeclareFunction(f) =>
     let (loc, functionName) = f.id;
 
     [
-      {
-        pstr_desc:
-          Ast_404.Parsetree.Pstr_primitive({
-            pval_name: {
-              txt: functionName,
-              loc: Ast_404.Location.none,
-            },
-            pval_type: {
-              ptyp_desc:
-                Ast_404.Parsetree.Ptyp_arrow(
-                  Ast_404.Asttypes.Nolabel,
-                  {
-                    ptyp_desc:
-                      Ast_404.Parsetree.Ptyp_constr(
-                        {
-                          txt: Ast_404.Longident.Lident("int"),
-                          loc: Ast_404.Location.none,
-                        },
-                        [],
-                      ),
-                    ptyp_loc: Ast_404.Location.none,
-                    ptyp_attributes: [],
-                  },
-                  {
-                    ptyp_desc:
-                      Ast_404.Parsetree.Ptyp_constr(
-                        {
-                          txt: Ast_404.Longident.Lident("int"),
-                          loc: Ast_404.Location.none,
-                        },
-                        [],
-                      ),
-                    ptyp_loc: Ast_404.Location.none,
-                    ptyp_attributes: [],
-                  },
-                ),
-              ptyp_loc: Ast_404.Location.none,
-              ptyp_attributes: [],
-            },
-            pval_prim: [functionName],
-            pval_attributes: [
-              (
-                {txt: "bs.module", loc: Ast_404.Location.none},
-                Ast_404.Parsetree.PStr([
-                  {
-                    pstr_desc:
-                      Ast_404.Parsetree.Pstr_eval(
-                        {
-                          pexp_desc:
-                            Ast_404.Parsetree.Pexp_constant(
-                              Ast_404.Parsetree.Pconst_string(
-                                moduleName,
-                                None,
-                              ),
-                            ),
-                          pexp_loc: Ast_404.Location.none,
-                          pexp_attributes: [],
-                        },
-                        [],
-                      ),
-                    pstr_loc: Ast_404.Location.none,
-                  },
-                ]),
-              ),
-            ],
-            pval_loc: Ast_404.Location.none,
-          }),
-        pstr_loc: Ast_404.Location.none,
-      },
+      AstUtils.makeExtern(
+        ~moduleName,
+        ~defaultExport=false,
+        ~externName=functionName,
+        ~externType=AstUtils.makeFunctionType("int", "int"),
+      ),
     ];
 
   | _ => []
