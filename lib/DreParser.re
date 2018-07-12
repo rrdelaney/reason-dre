@@ -50,7 +50,7 @@ let rec handleStatement =
               AstUtils.makeNamedType("int"),
               AstUtils.makeNamedType("string"),
             ],
-            AstUtils.makeNamedType("int"),
+            AstUtils.makeNamedType("rt"),
           ),
       ),
     ];
