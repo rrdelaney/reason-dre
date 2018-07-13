@@ -1,11 +1,10 @@
-let loc = Ast_404.Location.none;
+open Ast_404;
 
-let makeNamedType = typeName : Ast_404.Parsetree.core_type => {
+let loc = Location.none;
+
+let makeNamedType = typeName : Parsetree.core_type => {
   ptyp_desc:
-    Ast_404.Parsetree.Ptyp_constr(
-      {txt: Ast_404.Longident.Lident(typeName), loc},
-      [],
-    ),
+    Parsetree.Ptyp_constr({txt: Longident.Lident(typeName), loc}, []),
   ptyp_loc: loc,
   ptyp_attributes: [],
 };
@@ -13,35 +12,28 @@ let makeNamedType = typeName : Ast_404.Parsetree.core_type => {
 let makeFunctionType = (params, returnType) =>
   List.fold_right(
     (paramType, t) =>
-      Ast_404.Parsetree.{
-        ptyp_desc:
-          Ast_404.Parsetree.Ptyp_arrow(
-            Ast_404.Asttypes.Nolabel,
-            paramType,
-            t,
-          ),
-        ptyp_loc: Ast_404.Location.none,
+      Parsetree.{
+        ptyp_desc: Parsetree.Ptyp_arrow(Asttypes.Nolabel, paramType, t),
+        ptyp_loc: Location.none,
         ptyp_attributes: [],
       },
     params,
     returnType,
   );
 
-let makeBsModuleAttibute =
-    (~moduleName, ~defaultExport)
-    : Ast_404.Parsetree.attribute => (
+let makeBsModuleAttibute = (~moduleName, ~defaultExport) : Parsetree.attribute => (
   {txt: "bs.module", loc},
   if (defaultExport) {
-    Ast_404.Parsetree.PStr([]);
+    Parsetree.PStr([]);
   } else {
-    Ast_404.Parsetree.PStr([
+    Parsetree.PStr([
       {
         pstr_desc:
-          Ast_404.Parsetree.Pstr_eval(
+          Parsetree.Pstr_eval(
             {
               pexp_desc:
-                Ast_404.Parsetree.Pexp_constant(
-                  Ast_404.Parsetree.Pconst_string(moduleName, None),
+                Parsetree.Pexp_constant(
+                  Parsetree.Pconst_string(moduleName, None),
                 ),
               pexp_loc: loc,
               pexp_attributes: [],
@@ -56,9 +48,9 @@ let makeBsModuleAttibute =
 
 let makeExtern =
     (~moduleName, ~defaultExport, ~externName, ~externType)
-    : Ast_404.Parsetree.structure_item => {
+    : Parsetree.structure_item => {
   pstr_desc:
-    Ast_404.Parsetree.Pstr_primitive({
+    Parsetree.Pstr_primitive({
       pval_name: {
         txt: externName,
         loc,

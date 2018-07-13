@@ -1,20 +1,21 @@
-exception TypeNotSupported(Flow_parser.Loc.t);
+open Flow_parser;
+open Ast_404;
 
-let rec convertType =
-        ((loc, t): Flow_parser.Ast.Type.t(Flow_parser.Loc.t))
-        : Ast_404.Parsetree.core_type =>
+exception TypeNotSupported(Loc.t);
+
+let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
   switch (t) {
   | Number => AstUtils.makeNamedType("float")
   | String => AstUtils.makeNamedType("string")
   | Boolean => AstUtils.makeNamedType("boolean")
 
-  | Flow_parser.Ast.Type.Function(f) =>
+  | Ast.Type.Function(f) =>
     let (_loc, paramTypes) = f.params;
     let (retLoc, returnType) = f.return;
     let concreteParams = paramTypes.params;
     let concreteParamTypes =
       List.map(
-        ((loc, param)) => Flow_parser.Ast.Type.Function.Param.(param.annot),
+        ((loc, param)) => Ast.Type.Function.Param.(param.annot),
         concreteParams,
       );
 

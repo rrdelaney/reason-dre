@@ -1,7 +1,9 @@
-exception
-  ParseErrors(list((Flow_parser.Loc.t, Flow_parser.Parser_common.Error.t)));
-exception ModuleNameMustBeStringLiteral(Flow_parser.Loc.t);
-exception VarMustHaveType(Flow_parser.Loc.t);
+open Flow_parser;
+open Ast_404;
+
+exception ParseErrors(list((Loc.t, Parser_common.Error.t)));
+exception ModuleNameMustBeStringLiteral(Loc.t);
+exception VarMustHaveType(Loc.t);
 
 type file = {
   source: string,
@@ -10,22 +12,21 @@ type file = {
 
 let rec handleStatement =
         (~moduleName="", (loc, statement))
-        : Ast_404.Parsetree.structure =>
+        : Parsetree.structure =>
   switch (statement) {
-  | Flow_parser.Ast.Statement.DeclareModule(m) =>
+  | Ast.Statement.DeclareModule(m) =>
     let moduleName =
       switch (m.id) {
-      | Flow_parser.Ast.Statement.DeclareModule.Identifier(_) =>
+      | Ast.Statement.DeclareModule.Identifier(_) =>
         raise(ModuleNameMustBeStringLiteral(loc))
-      | Flow_parser.Ast.Statement.DeclareModule.Literal((loc, literal)) =>
-        literal.value
+      | Ast.Statement.DeclareModule.Literal((loc, literal)) => literal.value
       };
 
     let (loc, moduleBody) = m.body;
     let body = moduleBody.body;
     body |> List.map(handleStatement(~moduleName)) |> List.flatten;
 
-  | Flow_parser.Ast.Statement.DeclareVariable(v) =>
+  | Ast.Statement.DeclareVariable(v) =>
     let (loc, varName) = v.id;
     let (_annotLoc, varType) =
       switch (v.annot) {
@@ -42,7 +43,7 @@ let rec handleStatement =
       ),
     ];
 
-  | Flow_parser.Ast.Statement.DeclareFunction(f) =>
+  | Ast.Statement.DeclareFunction(f) =>
     let (_fnameLoc, functionName) = f.id;
     let (_annotLoc, functionType) = f.annot;
 
@@ -59,8 +60,7 @@ let rec handleStatement =
   };
 
 let parse = file => {
-  let (ast, errors) =
-    Flow_parser.Parser_flow.program_file(file.source, None);
+  let (ast, errors) = Parser_flow.program_file(file.source, None);
 
   if (List.length(errors) > 0) {
     raise(ParseErrors(errors));
