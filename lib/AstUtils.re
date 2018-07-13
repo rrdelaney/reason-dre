@@ -10,60 +10,7 @@ let makeNamedType = typeName : Ast_404.Parsetree.core_type => {
   ptyp_attributes: [],
 };
 
-let makeFunctionType = (args, returnType) : Ast_404.Parsetree.core_type => {
-  ptyp_desc:
-    Ast_404.Parsetree.Ptyp_arrow(
-      Ast_404.Asttypes.Nolabel,
-      {
-        ptyp_desc:
-          Ast_404.Parsetree.Ptyp_constr(
-            {
-              txt: Ast_404.Longident.Lident("int"),
-              loc: Ast_404.Location.none,
-            },
-            [],
-          ),
-        ptyp_loc: Ast_404.Location.none,
-        ptyp_attributes: [],
-      },
-      {
-        ptyp_desc:
-          Ast_404.Parsetree.Ptyp_arrow(
-            Ast_404.Asttypes.Nolabel,
-            {
-              ptyp_desc:
-                Ast_404.Parsetree.Ptyp_constr(
-                  {
-                    txt: Ast_404.Longident.Lident("int"),
-                    loc: Ast_404.Location.none,
-                  },
-                  [],
-                ),
-              ptyp_loc: Ast_404.Location.none,
-              ptyp_attributes: [],
-            },
-            {
-              ptyp_desc:
-                Ast_404.Parsetree.Ptyp_constr(
-                  {
-                    txt: Ast_404.Longident.Lident("int"),
-                    loc: Ast_404.Location.none,
-                  },
-                  [],
-                ),
-              ptyp_loc: Ast_404.Location.none,
-              ptyp_attributes: [],
-            },
-          ),
-        ptyp_loc: Ast_404.Location.none,
-        ptyp_attributes: [],
-      },
-    ),
-  ptyp_loc: Ast_404.Location.none,
-  ptyp_attributes: [],
-};
-
-let makeFunctionType2 = (params, returnType) =>
+let makeFunctionType = (params, returnType) =>
   List.fold_right(
     (paramType, t) =>
       Ast_404.Parsetree.{

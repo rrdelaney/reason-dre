@@ -1,6 +1,7 @@
 exception
   ParseErrors(list((Flow_parser.Loc.t, Flow_parser.Parser_common.Error.t)));
 exception ModuleNameMustBeStringLiteral(Flow_parser.Loc.t);
+exception VarMustHaveType(Flow_parser.Loc.t);
 
 type file = {
   source: string,
@@ -26,32 +27,31 @@ let rec handleStatement =
 
   | Flow_parser.Ast.Statement.DeclareVariable(v) =>
     let (loc, varName) = v.id;
+    let (_annotLoc, varType) =
+      switch (v.annot) {
+      | Some(annot) => annot
+      | None => raise(VarMustHaveType(loc))
+      };
 
     [
       AstUtils.makeExtern(
         ~moduleName,
         ~defaultExport=false,
         ~externName=varName,
-        ~externType=AstUtils.makeNamedType("int"),
+        ~externType=TypeUtils.convertType(varType),
       ),
     ];
 
   | Flow_parser.Ast.Statement.DeclareFunction(f) =>
-    let (loc, functionName) = f.id;
+    let (_fnameLoc, functionName) = f.id;
+    let (_annotLoc, functionType) = f.annot;
 
     [
       AstUtils.makeExtern(
         ~moduleName,
         ~defaultExport=false,
         ~externName=functionName,
-        ~externType=
-          AstUtils.makeFunctionType2(
-            [
-              AstUtils.makeNamedType("int"),
-              AstUtils.makeNamedType("string"),
-            ],
-            AstUtils.makeNamedType("rt"),
-          ),
+        ~externType=TypeUtils.convertType(functionType),
       ),
     ];
 
