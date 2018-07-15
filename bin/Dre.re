@@ -20,19 +20,31 @@ module IO = {
   };
 };
 
+let dreFilenameToReFilename = fname =>
+  String.sub(fname, 0, String.length(fname) - 3) ++ "re";
+
+let printHelp = () => {
+  print_endline("Dre Compiler");
+  print_endline("  Usage: dre.exe [...files]");
+};
+
+let compileFile = fname => {
+  let input = IO.readFile(fname);
+
+  let output = Lib.DreParser.parse(input);
+  let outputFname = dreFilenameToReFilename(fname);
+
+  IO.writeFile({filename: outputFname, source: output});
+};
+
 let argv = Array.sub(Sys.argv, 1, Array.length(Sys.argv) - 1);
 let args = ParseArgs.parse(argv);
 
-if (List.length(args.files) == 0) {
-  print_endline("Must provide a filename!");
+if (List.length(args.files) == 0 && ! args.help) {
+  print_endline("Must provide at least one file");
   exit(1);
+} else if (args.help) {
+  printHelp();
+} else {
+  List.iter(compileFile, args.files);
 };
-
-List.iter(
-  fname => {
-    let input = IO.readFile(fname);
-    let _output = Lib.DreParser.parse(input);
-    ();
-  },
-  args.files,
-);

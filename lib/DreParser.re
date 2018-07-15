@@ -75,8 +75,5 @@ let parse = file => {
     (program, []),
   );
 
-  let output = Format.flush_str_formatter();
-  print_string(output);
-
-  ();
+  Format.flush_str_formatter();
 };
