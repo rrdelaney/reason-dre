@@ -21,6 +21,29 @@ let makeFunctionType = (params, returnType) =>
     returnType,
   );
 
+let makeObjectType = fields : Parsetree.core_type => {
+  ptyp_desc:
+    Parsetree.Ptyp_constr(
+      {txt: Longident.Lident("Js.t"), loc},
+      [
+        {
+          ptyp_desc:
+            Parsetree.Ptyp_object(
+              List.map(
+                ((fieldName, fieldType)) => (fieldName, [], fieldType),
+                fields,
+              ),
+              Asttypes.Closed,
+            ),
+          ptyp_loc: loc,
+          ptyp_attributes: [],
+        },
+      ],
+    ),
+  ptyp_loc: loc,
+  ptyp_attributes: [],
+};
+
 let makeBsModuleAttibute = (~moduleName, ~defaultExport) : Parsetree.attribute => (
   {txt: "bs.module", loc},
   if (defaultExport) {
