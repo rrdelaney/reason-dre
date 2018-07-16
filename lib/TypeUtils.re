@@ -2,6 +2,7 @@ open Flow_parser;
 open Ast_404;
 
 exception TypeNotSupported(Loc.t);
+exception ObjectFieldNotSupported(Loc.t);
 
 let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
   switch (t) {
@@ -24,7 +25,43 @@ let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
       convertType((retLoc, returnType)),
     );
 
-  | Object(tt) => raise(TypeNotSupported(loc))
+  | Object(tt) =>
+    let objProps =
+      Ast.Type.Object.(
+        List.map(
+          fun
+          | Property((loc, prop)) => {
+              open Ast.Type.Object.Property;
+              let {key, value} = prop;
+
+              let propName =
+                switch (key) {
+                | Ast.Expression.Object.Property.Identifier((loc, id)) => id
+
+                | Ast.Expression.Object.Property.Literal((loc, _))
+                | Ast.Expression.Object.Property.PrivateName((loc, _))
+                | Ast.Expression.Object.Property.Computed((loc, _)) =>
+                  raise(ObjectFieldNotSupported(loc))
+                };
+              let propType =
+                switch (value) {
+                | Init(t) => convertType(t)
+                | Get((loc, _))
+                | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
+                };
+
+              (propName, propType);
+            }
+
+          | SpreadProperty((loc, _))
+          | Indexer((loc, _))
+          | CallProperty((loc, _))
+          | InternalSlot((loc, _)) => raise(ObjectFieldNotSupported(loc)),
+          tt.properties,
+        )
+      );
+
+    AstUtils.makeObjectType(objProps);
 
   | Any => raise(TypeNotSupported(loc))
   | Mixed => raise(TypeNotSupported(loc))
