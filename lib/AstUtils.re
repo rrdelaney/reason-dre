@@ -85,3 +85,51 @@ let makeExtern =
     }),
   pstr_loc: loc,
 };
+
+let makeInterfaceDeclaration =
+    (~interfaceName, ~interfaceType)
+    : Parsetree.structure_item => {
+  pstr_desc:
+    Parsetree.Pstr_type(
+      Asttypes.Recursive,
+      [
+        {
+          ptype_name: {
+            txt: interfaceName,
+            loc,
+          },
+          ptype_params: [],
+          ptype_cstrs: [],
+          ptype_kind: Parsetree.Ptype_record([]),
+          ptype_private: Asttypes.Public,
+          ptype_manifest: None,
+          ptype_attributes: [],
+          ptype_loc: loc,
+        },
+      ],
+    ),
+  pstr_loc: loc,
+};
+
+let makeTypeDeclaration = (~aliasName, ~aliasType) : Parsetree.structure_item => {
+  pstr_desc:
+    Parsetree.Pstr_type(
+      Asttypes.Recursive,
+      [
+        {
+          ptype_name: {
+            txt: aliasName,
+            loc,
+          },
+          ptype_params: [],
+          ptype_cstrs: [],
+          ptype_kind: Parsetree.Ptype_abstract,
+          ptype_private: Asttypes.Public,
+          ptype_manifest: Some(aliasType),
+          ptype_attributes: [],
+          ptype_loc: loc,
+        },
+      ],
+    ),
+  pstr_loc: loc,
+};

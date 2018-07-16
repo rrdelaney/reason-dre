@@ -63,13 +63,14 @@ let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
 
     AstUtils.makeObjectType(objProps);
 
+  | Interface(tt) => raise(TypeNotSupported(loc))
+
   | Any => raise(TypeNotSupported(loc))
   | Mixed => raise(TypeNotSupported(loc))
   | Empty => raise(TypeNotSupported(loc))
   | Void => raise(TypeNotSupported(loc))
   | Null => raise(TypeNotSupported(loc))
   | Nullable(tt) => raise(TypeNotSupported(loc))
-  | Interface(tt) => raise(TypeNotSupported(loc))
   | Array(tt) => raise(TypeNotSupported(loc))
   | Generic(tt) => raise(TypeNotSupported(loc))
   | Union(a, b, c) => raise(TypeNotSupported(loc))

@@ -56,6 +56,17 @@ let rec handleStatement =
       ),
     ];
 
+  | Ast.Statement.DeclareTypeAlias(t) =>
+    let (_nameLoc, aliasName) = t.id;
+    let aliasType = t.right;
+
+    [
+      AstUtils.makeTypeDeclaration(
+        ~aliasName,
+        ~aliasType=TypeUtils.convertType(aliasType),
+      ),
+    ];
+
   | _ => []
   };
 
