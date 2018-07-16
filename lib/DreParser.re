@@ -1,7 +1,7 @@
 open Flow_parser;
 open Ast_404;
 
-exception ParseErrors(list((Loc.t, Parser_common.Error.t)));
+exception ParseError(list((Loc.t, Parser_common.Error.t)));
 exception ModuleNameMustBeStringLiteral(Loc.t);
 exception VarMustHaveType(Loc.t);
 
@@ -60,10 +60,14 @@ let rec handleStatement =
   };
 
 let parse = file => {
-  let (ast, errors) = Parser_flow.program_file(file.source, None);
+  let (ast, errors) =
+    Parser_flow.program_file(
+      file.source,
+      Some(File_key.SourceFile(file.source)),
+    );
 
   if (List.length(errors) > 0) {
-    raise(ParseErrors(errors));
+    raise(ParseError(errors));
   };
 
   let (_, statements, _) = ast;

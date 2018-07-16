@@ -30,7 +30,6 @@ let printHelp = () => {
 
 let compileFile = (~stdout, fname) => {
   let input = IO.readFile(fname);
-
   let output = Lib.DreParser.parse(input);
   let outputFname = dreFilenameToReFilename(fname);
 
@@ -50,5 +49,8 @@ if (List.length(args.files) == 0 && ! args.help) {
 } else if (args.help) {
   printHelp();
 } else {
-  List.iter(compileFile(~stdout=args.stdout), args.files);
+  List.iter(
+    f => ErrorUtils.formatError(() => compileFile(~stdout=args.stdout, f)),
+    args.files,
+  );
 };
