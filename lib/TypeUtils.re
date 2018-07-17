@@ -11,11 +11,13 @@ let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
   | Number => AstUtils.makeNamedType("float")
   | String => AstUtils.makeNamedType("string")
   | Boolean => AstUtils.makeNamedType("boolean")
+  | Void => AstUtils.makeNamedType("unit")
 
   | Ast.Type.Function(f) =>
     let (_loc, paramTypes) = f.params;
     let (retLoc, returnType) = f.return;
     let concreteParams = paramTypes.params;
+
     let concreteParamTypes =
       List.map(
         ((loc, param)) => Ast.Type.Function.Param.(param.annot),
@@ -23,7 +25,11 @@ let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
       );
 
     AstUtils.makeFunctionType(
-      List.map(convertType, concreteParamTypes),
+      if (List.length(concreteParamTypes) > 0) {
+        List.map(convertType, concreteParamTypes);
+      } else {
+        [AstUtils.makeNamedType("unit")];
+      },
       convertType((retLoc, returnType)),
     );
 
@@ -65,16 +71,27 @@ let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
 
     AstUtils.makeObjectType(objProps);
 
-  | Interface(tt) => raise(TypeNotSupported(loc))
+  | Generic(tt) =>
+    let name =
+      switch (tt.id) {
+      | Ast.Type.Generic.Identifier.Unqualified((loc, name)) => name
+      | Ast.Type.Generic.Identifier.Qualified((loc, _)) =>
+        raise(TypeNotSupported(loc))
+      };
 
+    if (CasingUtils.isFirstLetterLowercase(name)) {
+      AstUtils.makeNamedType(name);
+    } else {
+      AstUtils.makeNamedType(name ++ ".t");
+    };
+
+  | Interface(tt) => raise(TypeNotSupported(loc))
+  | Empty => raise(TypeNotSupported(loc))
   | Any => raise(TypeNotSupported(loc))
   | Mixed => raise(TypeNotSupported(loc))
-  | Empty => raise(TypeNotSupported(loc))
-  | Void => raise(TypeNotSupported(loc))
   | Null => raise(TypeNotSupported(loc))
   | Nullable(tt) => raise(TypeNotSupported(loc))
   | Array(tt) => raise(TypeNotSupported(loc))
-  | Generic(tt) => raise(TypeNotSupported(loc))
   | Union(a, b, c) => raise(TypeNotSupported(loc))
   | Intersection(a, b, c) => raise(TypeNotSupported(loc))
   | Typeof(tt) => raise(TypeNotSupported(loc))

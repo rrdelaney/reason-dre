@@ -4,6 +4,8 @@ open Ast_404;
 exception ParseError(list((Loc.t, Parser_common.Error.t)));
 exception ModuleNameMustBeStringLiteral(Loc.t);
 exception VarMustHaveType(Loc.t);
+exception TypeAliasNameMustBeLowercase(Loc.t);
+exception InterfaceNameMustBeUppercase(Loc.t);
 
 type file = {
   source: string,
@@ -57,7 +59,11 @@ let rec handleStatement =
     ];
 
   | Ast.Statement.DeclareTypeAlias(t) =>
-    let (_nameLoc, aliasName) = t.id;
+    let (nameLoc, aliasName) = t.id;
+    if (! CasingUtils.isFirstLetterLowercase(aliasName)) {
+      raise(InterfaceNameMustBeUppercase(nameLoc));
+    };
+
     let aliasType = t.right;
 
     [
@@ -68,7 +74,11 @@ let rec handleStatement =
     ];
 
   | Ast.Statement.DeclareInterface(i) =>
-    let (_nameLoc, ifaceName) = i.id;
+    let (nameLoc, ifaceName) = i.id;
+    if (! CasingUtils.isFirstLetterUppercase(ifaceName)) {
+      raise(InterfaceNameMustBeUppercase(nameLoc));
+    };
+
     let (_ifaceLoc, ifaceType) = i.body;
 
     [

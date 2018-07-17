@@ -1,3 +1,8 @@
+let printErrMsg = () => {
+  print_endline(Chalk.red("There was a problem compiling your bindings :("));
+  print_newline();
+};
+
 let formatErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
   let source =
     switch (loc.source) {
@@ -48,12 +53,25 @@ let formatError = fn =>
   try (ignore(fn())) {
   | Flow_parser.Parse_error.Error(errs)
   | Lib.DreParser.ParseError(errs) =>
+    printErrMsg();
     List.iter(
       ((loc, err)) =>
         formatErrorLoc(~loc, ~msg=Flow_parser.Parse_error.PP.error(err)),
       errs,
-    )
+    );
+
+  | Lib.DreParser.TypeAliasNameMustBeLowercase(loc) =>
+    printErrMsg();
+    formatErrorLoc(~loc, ~msg="Type alias names must be lowercase");
+
+  | Lib.DreParser.InterfaceNameMustBeUppercase(loc) =>
+    printErrMsg();
+    formatErrorLoc(~loc, ~msg="Interface names must be uppercase");
+
+  | Lib.TypeUtils.TypeNotSupported(loc) =>
+    printErrMsg();
+    formatErrorLoc(~loc, ~msg="This type isn't supported yet, sorry!");
+
   | Lib.DreParser.ModuleNameMustBeStringLiteral(loc) => ()
-  | Lib.TypeUtils.TypeNotSupported(loc) => ()
   | Lib.TypeUtils.ObjectFieldNotSupported(loc) => ()
   };
