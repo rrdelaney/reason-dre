@@ -69,6 +69,25 @@ let makeBsModuleAttibute = (~moduleName, ~defaultExport) : Parsetree.attribute =
   },
 );
 
+let makeBsDerivingAttribute = () : Parsetree.attribute => (
+  {txt: "bs.deriving", loc},
+  Parsetree.PStr([
+    {
+      pstr_desc:
+        Parsetree.Pstr_eval(
+          {
+            pexp_desc:
+              Parsetree.Pexp_ident({txt: Longident.Lident("abstract"), loc}),
+            pexp_loc: loc,
+            pexp_attributes: [],
+          },
+          [],
+        ),
+      pstr_loc: loc,
+    },
+  ]),
+);
+
 let makeExtern =
     (~moduleName, ~defaultExport, ~externName, ~externType)
     : Parsetree.structure_item => {
@@ -117,7 +136,7 @@ let makeInterfaceDeclaration = (~name, ~fields) : Parsetree.structure_item => {
             ),
           ptype_private: Asttypes.Public,
           ptype_manifest: None,
-          ptype_attributes: [],
+          ptype_attributes: [makeBsDerivingAttribute()],
           ptype_loc: loc,
         },
       ],
