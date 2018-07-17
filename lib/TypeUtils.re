@@ -6,7 +6,9 @@ exception ObjectFieldNotSupported(Loc.t);
 
 let loc = AstUtils.loc;
 
-let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
+let rec convertType =
+        (~scopeName="", (loc, t): Ast.Type.t(Loc.t))
+        : Parsetree.core_type =>
   switch (t) {
   | Number => AstUtils.makeNamedType("float")
   | String => AstUtils.makeNamedType("string")
@@ -26,11 +28,11 @@ let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
 
     AstUtils.makeFunctionType(
       if (List.length(concreteParamTypes) > 0) {
-        List.map(convertType, concreteParamTypes);
+        List.map(convertType(~scopeName), concreteParamTypes);
       } else {
         [AstUtils.makeNamedType("unit")];
       },
-      convertType((retLoc, returnType)),
+      convertType(~scopeName, (retLoc, returnType)),
     );
 
   | Object(tt) =>
@@ -79,7 +81,9 @@ let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
         raise(TypeNotSupported(loc))
       };
 
-    if (CasingUtils.isFirstLetterLowercase(name)) {
+    if (name == scopeName) {
+      AstUtils.makeNamedType("t");
+    } else if (CasingUtils.isFirstLetterLowercase(name)) {
       AstUtils.makeNamedType(name);
     } else {
       AstUtils.makeNamedType(name ++ ".t");
@@ -103,7 +107,10 @@ let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
   };
 
 let makeMethods =
-    (~interfaceType: Flow_parser.Ast.Type.Object.t(Flow_parser.Loc.t))
+    (
+      ~interfaceName,
+      ~interfaceType: Flow_parser.Ast.Type.Object.t(Flow_parser.Loc.t),
+    )
     : list(Parsetree.structure_item) =>
   Ast.Type.Object.(
     interfaceType.properties
@@ -133,7 +140,7 @@ let makeMethods =
 
              let propType =
                switch (value) {
-               | Init(t) => convertType(t)
+               | Init(t) => convertType(~scopeName=interfaceName, t)
                | Get((loc, _))
                | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
                };
@@ -157,7 +164,7 @@ let makeInterfaceDeclaration =
     )
     : Parsetree.structure_item =>
   AstUtils.makeInterfaceDeclaration(
-    ~name=interfaceName,
+    ~name="t",
     ~fields=
       Ast.Type.Object.(
         interfaceType.properties
@@ -187,7 +194,7 @@ let makeInterfaceDeclaration =
 
                  let propType =
                    switch (value) {
-                   | Init(t) => convertType(t)
+                   | Init(t) => convertType(~scopeName=interfaceName, t)
                    | Get((loc, _))
                    | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
                    };

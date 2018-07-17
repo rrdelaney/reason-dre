@@ -13,7 +13,7 @@ type file = {
 };
 
 let rec handleStatement =
-        (~moduleName="", (loc, statement))
+        (~moduleName=?, (loc, statement))
         : Parsetree.structure =>
   switch (statement) {
   | Ast.Statement.DeclareModule(m) =>
@@ -86,10 +86,13 @@ let rec handleStatement =
         ifaceName,
         [
           TypeUtils.makeInterfaceDeclaration(
-            ~interfaceName="t",
+            ~interfaceName=ifaceName,
             ~interfaceType=ifaceType,
           ),
-          ...TypeUtils.makeMethods(~interfaceType=ifaceType),
+          ...TypeUtils.makeMethods(
+               ~interfaceName=ifaceName,
+               ~interfaceType=ifaceType,
+             ),
         ],
       ),
     ];

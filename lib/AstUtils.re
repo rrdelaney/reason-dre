@@ -93,6 +93,11 @@ let makeBsSendAttribute = () : Parsetree.attribute => (
   Parsetree.PStr([]),
 );
 
+let makeBsValAttribute = () : Parsetree.attribute => (
+  {txt: "bs.val", loc},
+  Parsetree.PStr([]),
+);
+
 let makeExtern =
     (~moduleName, ~defaultExport, ~externName, ~externType)
     : Parsetree.structure_item => {
@@ -104,7 +109,13 @@ let makeExtern =
       },
       pval_type: externType,
       pval_prim: [externName],
-      pval_attributes: [makeBsModuleAttibute(~moduleName, ~defaultExport)],
+      pval_attributes: [
+        switch (moduleName) {
+        | Some(name) =>
+          makeBsModuleAttibute(~moduleName=name, ~defaultExport)
+        | None => makeBsValAttribute()
+        },
+      ],
       pval_loc: loc,
     }),
   pstr_loc: loc,
