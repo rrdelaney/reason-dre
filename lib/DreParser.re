@@ -89,6 +89,7 @@ let rec handleStatement =
             ~interfaceName="t",
             ~interfaceType=ifaceType,
           ),
+          ...TypeUtils.makeMethods(~interfaceType=ifaceType),
         ],
       ),
     ];

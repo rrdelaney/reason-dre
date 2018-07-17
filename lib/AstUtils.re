@@ -14,7 +14,7 @@ let makeFunctionType = (params, returnType) =>
     (paramType, t) =>
       Parsetree.{
         ptyp_desc: Parsetree.Ptyp_arrow(Asttypes.Nolabel, paramType, t),
-        ptyp_loc: Location.none,
+        ptyp_loc: loc,
         ptyp_attributes: [],
       },
     params,
@@ -88,6 +88,11 @@ let makeBsDerivingAttribute = () : Parsetree.attribute => (
   ]),
 );
 
+let makeBsSendAttribute = () : Parsetree.attribute => (
+  {txt: "bs.send", loc},
+  Parsetree.PStr([]),
+);
+
 let makeExtern =
     (~moduleName, ~defaultExport, ~externName, ~externType)
     : Parsetree.structure_item => {
@@ -100,6 +105,31 @@ let makeExtern =
       pval_type: externType,
       pval_prim: [externName],
       pval_attributes: [makeBsModuleAttibute(~moduleName, ~defaultExport)],
+      pval_loc: loc,
+    }),
+  pstr_loc: loc,
+};
+
+let makeMethodExtern = (~methodName, ~methodType) : Parsetree.structure_item => {
+  pstr_desc:
+    Parsetree.Pstr_primitive({
+      pval_name: {
+        txt: methodName,
+        loc,
+      },
+      pval_type:
+        Parsetree.{
+          ptyp_desc:
+            Parsetree.Ptyp_arrow(
+              Asttypes.Nolabel,
+              makeNamedType("t"),
+              methodType,
+            ),
+          ptyp_loc: loc,
+          ptyp_attributes: [],
+        },
+      pval_prim: [methodName],
+      pval_attributes: [makeBsSendAttribute()],
       pval_loc: loc,
     }),
   pstr_loc: loc,
