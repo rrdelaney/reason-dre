@@ -89,13 +89,15 @@ let rec convertType =
       AstUtils.makeNamedType(name ++ ".t");
     };
 
+  | Array(t) =>
+    AstUtils.makeAppliedType("array", [convertType(~scopeName, t)])
+
   | Interface(tt) => raise(TypeNotSupported(loc))
   | Empty => raise(TypeNotSupported(loc))
   | Any => raise(TypeNotSupported(loc))
   | Mixed => raise(TypeNotSupported(loc))
   | Null => raise(TypeNotSupported(loc))
   | Nullable(tt) => raise(TypeNotSupported(loc))
-  | Array(tt) => raise(TypeNotSupported(loc))
   | Union(a, b, c) => raise(TypeNotSupported(loc))
   | Intersection(a, b, c) => raise(TypeNotSupported(loc))
   | Typeof(tt) => raise(TypeNotSupported(loc))
