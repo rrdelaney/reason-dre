@@ -72,9 +72,14 @@ let rec handleStatement =
     let (_ifaceLoc, ifaceType) = i.body;
 
     [
-      TypeUtils.makeInterfaceDeclaration(
-        ~interfaceName=ifaceName,
-        ~interfaceType=ifaceType,
+      AstUtils.makeModule(
+        ifaceName,
+        [
+          TypeUtils.makeInterfaceDeclaration(
+            ~interfaceName="t",
+            ~interfaceType=ifaceType,
+          ),
+        ],
       ),
     ];
 

@@ -147,3 +147,21 @@ let makeTypeDeclaration = (~aliasName, ~aliasType) : Parsetree.structure_item =>
     ),
   pstr_loc: loc,
 };
+
+let makeModule = (moduleName, moduleItems) : Parsetree.structure_item => {
+  pstr_desc:
+    Parsetree.Pstr_module({
+      pmb_name: {
+        txt: moduleName,
+        loc,
+      },
+      pmb_expr: {
+        pmod_desc: Parsetree.Pmod_structure(moduleItems),
+        pmod_loc: loc,
+        pmod_attributes: [],
+      },
+      pmb_attributes: [],
+      pmb_loc: loc,
+    }),
+  pstr_loc: loc,
+};
