@@ -4,6 +4,8 @@ open Ast_404;
 exception TypeNotSupported(Loc.t);
 exception ObjectFieldNotSupported(Loc.t);
 
+let loc = AstUtils.loc;
+
 let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
   switch (t) {
   | Number => AstUtils.makeNamedType("float")
@@ -82,3 +84,47 @@ let rec convertType = ((loc, t): Ast.Type.t(Loc.t)) : Parsetree.core_type =>
   | BooleanLiteral(tt) => raise(TypeNotSupported(loc))
   | Exists => raise(TypeNotSupported(loc))
   };
+
+let makeInterfaceDeclaration =
+    (
+      ~interfaceName: string,
+      ~interfaceType: Flow_parser.Ast.Type.Object.t(Flow_parser.Loc.t),
+    )
+    : Parsetree.structure_item =>
+  AstUtils.makeInterfaceDeclaration(
+    ~name=interfaceName,
+    ~fields=
+      Ast.Type.Object.(
+        List.map(
+          fun
+          | Property((loc, prop)) => {
+              open Ast.Type.Object.Property;
+              let {key, value} = prop;
+
+              let propName =
+                switch (key) {
+                | Ast.Expression.Object.Property.Identifier((loc, id)) => id
+
+                | Ast.Expression.Object.Property.Literal((loc, _))
+                | Ast.Expression.Object.Property.PrivateName((loc, _))
+                | Ast.Expression.Object.Property.Computed((loc, _)) =>
+                  raise(ObjectFieldNotSupported(loc))
+                };
+
+              let propType =
+                switch (value) {
+                | Init(t) => convertType(t)
+                | Get((loc, _))
+                | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
+                };
+
+              (propName, propType);
+            }
+          | SpreadProperty((loc, _))
+          | Indexer((loc, _))
+          | CallProperty((loc, _))
+          | InternalSlot((loc, _)) => raise(ObjectFieldNotSupported(loc)),
+          interfaceType.properties,
+        )
+      ),
+  );

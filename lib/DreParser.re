@@ -67,6 +67,17 @@ let rec handleStatement =
       ),
     ];
 
+  | Ast.Statement.DeclareInterface(i) =>
+    let (_nameLoc, ifaceName) = i.id;
+    let (_ifaceLoc, ifaceType) = i.body;
+
+    [
+      TypeUtils.makeInterfaceDeclaration(
+        ~interfaceName=ifaceName,
+        ~interfaceType=ifaceType,
+      ),
+    ];
+
   | _ => []
   };
 

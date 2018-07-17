@@ -86,21 +86,35 @@ let makeExtern =
   pstr_loc: loc,
 };
 
-let makeInterfaceDeclaration =
-    (~interfaceName, ~interfaceType)
-    : Parsetree.structure_item => {
+let makeInterfaceDeclaration = (~name, ~fields) : Parsetree.structure_item => {
   pstr_desc:
     Parsetree.Pstr_type(
       Asttypes.Recursive,
       [
         {
           ptype_name: {
-            txt: interfaceName,
+            txt: name,
             loc,
           },
           ptype_params: [],
           ptype_cstrs: [],
-          ptype_kind: Parsetree.Ptype_record([]),
+          ptype_kind:
+            Parsetree.Ptype_record(
+              List.map(
+                ((fieldName, fieldType)) =>
+                  Parsetree.{
+                    pld_name: {
+                      txt: fieldName,
+                      loc,
+                    },
+                    pld_mutable: Asttypes.Immutable,
+                    pld_type: fieldType,
+                    pld_loc: loc,
+                    pld_attributes: [],
+                  },
+                fields,
+              ),
+            ),
           ptype_private: Asttypes.Public,
           ptype_manifest: None,
           ptype_attributes: [],
