@@ -3,11 +3,30 @@ open Ast_404;
 
 exception TypeNotSupported(Loc.t);
 exception ObjectFieldNotSupported(Loc.t);
+exception TypeNotInScope(string, Loc.t);
 
 let loc = AstUtils.loc;
 
+module Scope = {
+  type scope = {
+    name: string,
+    typesInScope: list(string),
+  };
+
+  let default = {name: "", typesInScope: []};
+  let make = name => {...default, name};
+
+  let inScope = (name, scope) =>
+    List.exists(t => t == name, scope.typesInScope);
+
+  let add = (tname, scope) => {
+    ...scope,
+    typesInScope: [tname, ...scope.typesInScope],
+  };
+};
+
 let rec convertType =
-        (~scopeName="", (loc, t): Ast.Type.t(Loc.t))
+        (~scope=Scope.default, (loc, t): Ast.Type.t(Loc.t))
         : Parsetree.core_type =>
   switch (t) {
   | Number => AstUtils.makeNamedType("float")
@@ -28,11 +47,11 @@ let rec convertType =
 
     AstUtils.makeFunctionType(
       if (List.length(concreteParamTypes) > 0) {
-        List.map(convertType(~scopeName), concreteParamTypes);
+        List.map(convertType(~scope), concreteParamTypes);
       } else {
         [AstUtils.makeNamedType("unit")];
       },
-      convertType(~scopeName, (retLoc, returnType)),
+      convertType(~scope, (retLoc, returnType)),
     );
 
   | Object(tt) =>
@@ -74,14 +93,18 @@ let rec convertType =
     AstUtils.makeObjectType(objProps);
 
   | Generic(tt) =>
-    let name =
+    let (loc, name) =
       switch (tt.id) {
-      | Ast.Type.Generic.Identifier.Unqualified((loc, name)) => name
+      | Ast.Type.Generic.Identifier.Unqualified(id) => id
       | Ast.Type.Generic.Identifier.Qualified((loc, _)) =>
         raise(TypeNotSupported(loc))
       };
 
-    if (name == scopeName) {
+    if (! Scope.inScope(name, scope)) {
+      raise(TypeNotInScope(name, loc));
+    };
+
+    if (name == scope.name) {
       AstUtils.makeNamedType("t");
     } else if (CasingUtils.isFirstLetterLowercase(name)) {
       AstUtils.makeNamedType(name);
@@ -89,8 +112,7 @@ let rec convertType =
       AstUtils.makeNamedType(name ++ ".t");
     };
 
-  | Array(t) =>
-    AstUtils.makeAppliedType("array", [convertType(~scopeName, t)])
+  | Array(t) => AstUtils.makeAppliedType("array", [convertType(~scope, t)])
 
   | Interface(tt) => raise(TypeNotSupported(loc))
   | Empty => raise(TypeNotSupported(loc))
@@ -142,7 +164,12 @@ let makeMethods =
 
              let propType =
                switch (value) {
-               | Init(t) => convertType(~scopeName=interfaceName, t)
+               | Init(t) =>
+                 convertType(
+                   ~scope=
+                     Scope.make(interfaceName) |> Scope.add(interfaceName),
+                   t,
+                 )
                | Get((loc, _))
                | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
                };
@@ -196,7 +223,13 @@ let makeInterfaceDeclaration =
 
                  let propType =
                    switch (value) {
-                   | Init(t) => convertType(~scopeName=interfaceName, t)
+                   | Init(t) =>
+                     convertType(
+                       ~scope=
+                         Scope.make(interfaceName)
+                         |> Scope.add(interfaceName),
+                       t,
+                     )
                    | Get((loc, _))
                    | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
                    };
