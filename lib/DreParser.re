@@ -41,7 +41,8 @@ let rec handleStatement =
         ~moduleName,
         ~defaultExport=false,
         ~externName=varName,
-        ~externType=TypeUtils.convertType(varType),
+        ~externType=
+          TypeUtils.convertType(~scope=DynamicScope.make(), varType),
       ),
     ];
 
@@ -54,7 +55,8 @@ let rec handleStatement =
         ~moduleName,
         ~defaultExport=false,
         ~externName=functionName,
-        ~externType=TypeUtils.convertType(functionType),
+        ~externType=
+          TypeUtils.convertType(~scope=DynamicScope.make(), functionType),
       ),
     ];
 
@@ -69,7 +71,8 @@ let rec handleStatement =
     [
       AstUtils.makeTypeDeclaration(
         ~aliasName,
-        ~aliasType=TypeUtils.convertType(aliasType),
+        ~aliasType=
+          TypeUtils.convertType(~scope=DynamicScope.make(), aliasType),
       ),
     ];
 

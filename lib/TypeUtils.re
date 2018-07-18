@@ -7,26 +7,8 @@ exception TypeNotInScope(string, Loc.t);
 
 let loc = AstUtils.loc;
 
-module Scope = {
-  type scope = {
-    name: string,
-    typesInScope: list(string),
-  };
-
-  let default = {name: "", typesInScope: []};
-  let make = name => {...default, name};
-
-  let inScope = (name, scope) =>
-    List.exists(t => t == name, scope.typesInScope);
-
-  let add = (tname, scope) => {
-    ...scope,
-    typesInScope: [tname, ...scope.typesInScope],
-  };
-};
-
 let rec convertType =
-        (~scope=Scope.default, (loc, t): Ast.Type.t(Loc.t))
+        (~scope, (loc, t): Ast.Type.t(Loc.t))
         : Parsetree.core_type =>
   switch (t) {
   | Number => AstUtils.makeNamedType("float")
@@ -74,7 +56,7 @@ let rec convertType =
                 };
               let propType =
                 switch (value) {
-                | Init(t) => convertType(t)
+                | Init(t) => convertType(~scope, t)
                 | Get((loc, _))
                 | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
                 };
@@ -100,7 +82,7 @@ let rec convertType =
         raise(TypeNotSupported(loc))
       };
 
-    if (! Scope.inScope(name, scope)) {
+    if (DreConfig.checkTypesInScope && ! DynamicScope.has(name, scope)) {
       raise(TypeNotInScope(name, loc));
     };
 
@@ -165,11 +147,7 @@ let makeMethods =
              let propType =
                switch (value) {
                | Init(t) =>
-                 convertType(
-                   ~scope=
-                     Scope.make(interfaceName) |> Scope.add(interfaceName),
-                   t,
-                 )
+                 convertType(~scope=DynamicScope.makeNamed(interfaceName), t)
                | Get((loc, _))
                | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
                };
@@ -225,9 +203,7 @@ let makeInterfaceDeclaration =
                    switch (value) {
                    | Init(t) =>
                      convertType(
-                       ~scope=
-                         Scope.make(interfaceName)
-                         |> Scope.add(interfaceName),
+                       ~scope=DynamicScope.makeNamed(interfaceName),
                        t,
                      )
                    | Get((loc, _))
