@@ -1,0 +1,6 @@
+(jbuild_version 1)
+
+(executable
+ ((name DreJS)
+  (public_name DreJS)
+  (libraries (js_of_ocaml lib))))

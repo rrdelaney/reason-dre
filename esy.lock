@@ -157,7 +157,7 @@
   peerDependencies:
     ocaml "*"
 
-"@opam/cppo@*":
+"@opam/cppo@ >= 1.1.0", "@opam/cppo@*":
   version "1.6.4"
   uid "0caf37d16727e17fbcd4e9b41a467f91"
   resolved "@opam/cppo@1.6.4-0caf37d16727e17fbcd4e9b41a467f91.tgz"
@@ -278,6 +278,36 @@
     "@opam/ocamlfind" "*"
   peerDependencies:
     ocaml " >= 4.2.3000"
+
+"@opam/js_of_ocaml-compiler@*", "@opam/js_of_ocaml-compiler@^3.2.0":
+  version "3.2.0"
+  uid "4154b64c31989d074ae5e1f2dd0999a2"
+  resolved "@opam/js_of_ocaml-compiler@3.2.0-4154b64c31989d074ae5e1f2dd0999a2.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/cmdliner" "*"
+    "@opam/cppo" " >= 1.1.0"
+    "@opam/jbuilder" " >= 1.0.0-beta17"
+    "@opam/ocamlfind" "*"
+    "@opam/yojson" "*"
+  peerDependencies:
+    ocaml " >= 4.2.0"
+
+"@opam/js_of_ocaml@^3.2.0":
+  version "3.2.0"
+  uid "77995a93224cd482051266759c7b6f33"
+  resolved "@opam/js_of_ocaml@3.2.0-77995a93224cd482051266759c7b6f33.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/jbuilder" " >= 1.0.0-beta17"
+    "@opam/js_of_ocaml-compiler" "*"
+    "@opam/ocaml-migrate-parsetree" "*"
+    "@opam/ppx_tools_versioned" "*"
+    "@opam/uchar" "*"
+  peerDependencies:
+    ocaml " >= 4.2.0"
 
 "@opam/logs@*":
   version "0.6.2"

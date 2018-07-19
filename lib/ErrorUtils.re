@@ -29,6 +29,27 @@ module MsgBuf = {
     buffer := [];
     flushedStr;
   };
+
+  let flushPlainStr = () => {
+    let flushedStr =
+      List.fold_right(
+        (msg, buf) =>
+          buf
+          ++ (
+            switch (msg) {
+            | Str(str)
+            | Red(str)
+            | Cyan(str) => str
+            | Endline => "\n"
+            }
+          ),
+        buffer^,
+        "",
+      );
+
+    buffer := [];
+    flushedStr;
+  };
 };
 
 let bufferErrMsg = () =>
@@ -105,7 +126,7 @@ let bufferHint = (~msg) => MsgBuf.push([MsgBuf.Str("  " ++ msg)]);
 let withBufferedError = fn =>
   try (ignore(fn())) {
   | Flow_parser.Parse_error.Error(errs)
-  | Lib.DreParser.ParseError(errs) =>
+  | DreParser.ParseError(errs) =>
     bufferErrMsg();
     List.iter(
       ((loc, err)) =>
@@ -113,19 +134,19 @@ let withBufferedError = fn =>
       errs,
     );
 
-  | Lib.DreParser.TypeAliasNameMustBeLowercase(_name, loc) =>
+  | DreParser.TypeAliasNameMustBeLowercase(_name, loc) =>
     bufferErrMsg();
     bufferErrorLoc(~loc, ~msg="Type alias names must be lowercase");
 
-  | Lib.DreParser.InterfaceNameMustBeUppercase(_name, loc) =>
+  | DreParser.InterfaceNameMustBeUppercase(_name, loc) =>
     bufferErrMsg();
     bufferErrorLoc(~loc, ~msg="Interface names must be uppercase");
 
-  | Lib.TypeUtils.TypeNotSupported(loc) =>
+  | TypeUtils.TypeNotSupported(loc) =>
     bufferErrMsg();
     bufferErrorLoc(~loc, ~msg="This type isn't supported yet, sorry!");
 
-  | Lib.TypeUtils.TypeNotInScope(typeName, loc) =>
+  | TypeUtils.TypeNotInScope(typeName, loc) =>
     bufferErrMsg();
     bufferErrorLoc(
       ~loc,
@@ -137,6 +158,6 @@ let withBufferedError = fn =>
     | _ => ()
     };
 
-  | Lib.DreParser.ModuleNameMustBeStringLiteral(loc) => ()
-  | Lib.TypeUtils.ObjectFieldNotSupported(loc) => ()
+  | DreParser.ModuleNameMustBeStringLiteral(loc) => ()
+  | TypeUtils.ObjectFieldNotSupported(loc) => ()
   };
