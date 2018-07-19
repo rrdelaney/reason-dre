@@ -1,9 +1,43 @@
-let printErrMsg = () => {
-  print_endline(Chalk.red("There was a problem compiling your bindings :("));
-  print_newline();
+module MsgBuf = {
+  type message =
+    | Str(string)
+    | Endline
+    | Red(string)
+    | Cyan(string);
+
+  let buffer = ref([]);
+
+  let push = msgs => buffer := List.concat([List.rev(msgs), buffer^]);
+
+  let flush = () => {
+    let flushedStr =
+      List.fold_right(
+        (msg, buf) =>
+          buf
+          ++ (
+            switch (msg) {
+            | Str(str) => str
+            | Red(str) => Chalk.red(str)
+            | Cyan(str) => Chalk.cyan(str)
+            | Endline => "\n"
+            }
+          ),
+        buffer^,
+        "",
+      );
+
+    buffer := [];
+    flushedStr;
+  };
 };
 
-let formatErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
+let bufferErrMsg = () =>
+  MsgBuf.push([
+    MsgBuf.Red("There was a problem compiling your bindings :("),
+    MsgBuf.Endline,
+  ]);
+
+let bufferErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
   let source =
     switch (loc.source) {
     | Some(Flow_parser.File_key.SourceFile(src)) => src
@@ -41,65 +75,71 @@ let formatErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
   Array.iteri(
     (i, line) =>
       if (isSingleLineErr && i + startLine + 1 == loc.start.line) {
-        print_endline(Chalk.red("> ") ++ line);
-        print_string(String.make(loc.start.column + 6, ' '));
-        print_string(
-          Chalk.red(String.make(loc._end.column - loc.start.column, '^')),
-        );
-        print_endline(Chalk.red(" " ++ msg));
+        MsgBuf.push([
+          MsgBuf.Red("> "),
+          MsgBuf.Str(line),
+          MsgBuf.Endline,
+          MsgBuf.Str(String.make(loc.start.column + 6, ' ')),
+          MsgBuf.Red(String.make(loc._end.column - loc.start.column, '^')),
+          MsgBuf.Red(" " ++ msg),
+          MsgBuf.Endline,
+        ]);
       } else if (loc.start.line <= i
                  + startLine
                  + 1
                  && i
                  + startLine
                  + 1 <= loc._end.line) {
-        print_endline("> " ++ line);
+        MsgBuf.push([MsgBuf.Str("> " ++ line), MsgBuf.Endline]);
       } else {
-        print_endline("  " ++ line);
+        MsgBuf.push([MsgBuf.Str("  " ++ line), MsgBuf.Endline]);
       },
     linesWithNumber,
   );
 
-  print_newline();
+  MsgBuf.push([MsgBuf.Endline]);
 };
 
-let formatHint = (~msg) => print_endline("  " ++ msg);
+let bufferHint = (~msg) => MsgBuf.push([MsgBuf.Str("  " ++ msg)]);
 
-let formatError = fn =>
+let formatError = fn => {
   try (ignore(fn())) {
   | Flow_parser.Parse_error.Error(errs)
   | Lib.DreParser.ParseError(errs) =>
-    printErrMsg();
+    bufferErrMsg();
     List.iter(
       ((loc, err)) =>
-        formatErrorLoc(~loc, ~msg=Flow_parser.Parse_error.PP.error(err)),
+        bufferErrorLoc(~loc, ~msg=Flow_parser.Parse_error.PP.error(err)),
       errs,
     );
 
   | Lib.DreParser.TypeAliasNameMustBeLowercase(_name, loc) =>
-    printErrMsg();
-    formatErrorLoc(~loc, ~msg="Type alias names must be lowercase");
+    bufferErrMsg();
+    bufferErrorLoc(~loc, ~msg="Type alias names must be lowercase");
 
   | Lib.DreParser.InterfaceNameMustBeUppercase(_name, loc) =>
-    printErrMsg();
-    formatErrorLoc(~loc, ~msg="Interface names must be uppercase");
+    bufferErrMsg();
+    bufferErrorLoc(~loc, ~msg="Interface names must be uppercase");
 
   | Lib.TypeUtils.TypeNotSupported(loc) =>
-    printErrMsg();
-    formatErrorLoc(~loc, ~msg="This type isn't supported yet, sorry!");
+    bufferErrMsg();
+    bufferErrorLoc(~loc, ~msg="This type isn't supported yet, sorry!");
 
   | Lib.TypeUtils.TypeNotInScope(typeName, loc) =>
-    printErrMsg();
-    formatErrorLoc(
+    bufferErrMsg();
+    bufferErrorLoc(
       ~loc,
       ~msg="Could not find type \"" ++ typeName ++ "\" in scope",
     );
 
     switch (typeName) {
-    | "int" => formatHint(~msg="Did you mean \"number\"?")
+    | "int" => bufferHint(~msg="Did you mean \"number\"?")
     | _ => ()
     };
 
   | Lib.DreParser.ModuleNameMustBeStringLiteral(loc) => ()
   | Lib.TypeUtils.ObjectFieldNotSupported(loc) => ()
   };
+
+  print_string(MsgBuf.flush());
+};
