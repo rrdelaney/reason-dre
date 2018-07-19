@@ -50,7 +50,10 @@ if (List.length(args.files) == 0 && ! args.help) {
   printHelp();
 } else {
   List.iter(
-    f => ErrorUtils.formatError(() => compileFile(~stdout=args.stdout, f)),
+    f => {
+      ErrorUtils.withBufferedError(() => compileFile(~stdout=args.stdout, f));
+      ErrorUtils.MsgBuf.flush() |> print_string;
+    },
     args.files,
   );
 };

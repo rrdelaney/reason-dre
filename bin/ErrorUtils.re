@@ -102,7 +102,7 @@ let bufferErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
 
 let bufferHint = (~msg) => MsgBuf.push([MsgBuf.Str("  " ++ msg)]);
 
-let formatError = fn => {
+let withBufferedError = fn =>
   try (ignore(fn())) {
   | Flow_parser.Parse_error.Error(errs)
   | Lib.DreParser.ParseError(errs) =>
@@ -140,6 +140,3 @@ let formatError = fn => {
   | Lib.DreParser.ModuleNameMustBeStringLiteral(loc) => ()
   | Lib.TypeUtils.ObjectFieldNotSupported(loc) => ()
   };
-
-  print_string(MsgBuf.flush());
-};
