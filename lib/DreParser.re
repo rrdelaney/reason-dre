@@ -12,9 +12,7 @@ type file = {
   filename: string,
 };
 
-let rec handleStatement =
-        (~moduleName=?, (loc, statement))
-        : Parsetree.structure =>
+let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
   switch (statement) {
   | Ast.Statement.DeclareModule(m) =>
     let moduleName =
@@ -24,9 +22,11 @@ let rec handleStatement =
       | Ast.Statement.DeclareModule.Literal((loc, literal)) => literal.value
       };
 
+    let moduleScope = DynamicScope.withModule(moduleName, scope);
+
     let (loc, moduleBody) = m.body;
     let body = moduleBody.body;
-    body |> List.map(handleStatement(~moduleName)) |> List.flatten;
+    body |> List.map(handleStatement(~scope=moduleScope)) |> List.flatten;
 
   | Ast.Statement.DeclareVariable(v) =>
     let (loc, varName) = v.id;
@@ -38,11 +38,10 @@ let rec handleStatement =
 
     [
       AstUtils.makeExtern(
-        ~moduleName,
+        ~moduleName=scope.moduleName,
         ~defaultExport=false,
         ~externName=varName,
-        ~externType=
-          TypeUtils.convertType(~scope=DynamicScope.make(), varType),
+        ~externType=TypeUtils.convertType(~scope, varType),
       ),
     ];
 
@@ -52,11 +51,10 @@ let rec handleStatement =
 
     [
       AstUtils.makeExtern(
-        ~moduleName,
+        ~moduleName=scope.moduleName,
         ~defaultExport=false,
         ~externName=functionName,
-        ~externType=
-          TypeUtils.convertType(~scope=DynamicScope.make(), functionType),
+        ~externType=TypeUtils.convertType(~scope, functionType),
       ),
     ];
 
@@ -71,8 +69,7 @@ let rec handleStatement =
     [
       AstUtils.makeTypeDeclaration(
         ~aliasName,
-        ~aliasType=
-          TypeUtils.convertType(~scope=DynamicScope.make(), aliasType),
+        ~aliasType=TypeUtils.convertType(~scope, aliasType),
       ),
     ];
 
@@ -89,10 +86,12 @@ let rec handleStatement =
         ifaceName,
         [
           TypeUtils.makeInterfaceDeclaration(
+            ~scope,
             ~interfaceName=ifaceName,
             ~interfaceType=ifaceType,
           ),
           ...TypeUtils.makeMethods(
+               ~scope,
                ~interfaceName=ifaceName,
                ~interfaceType=ifaceType,
              ),
@@ -116,7 +115,11 @@ let parse = file => {
 
   let (_, statements, _) = ast;
 
-  let program = statements |> List.map(handleStatement) |> List.flatten;
+  let programScope = DynamicScope.make();
+  let program =
+    statements
+    |> List.map(handleStatement(~scope=programScope))
+    |> List.flatten;
 
   Reason_toolchain.RE.print_implementation_with_comments(
     Format.str_formatter,

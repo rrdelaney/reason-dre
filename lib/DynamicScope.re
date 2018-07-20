@@ -3,17 +3,31 @@ type scopeType =
   | Named(string);
 
 type scope = {
-  name: string,
+  moduleName: option(string),
+  scopeName: option(string),
   mutable types: list(scopeType),
 };
 
+let make = () => {moduleName: None, scopeName: None, types: []};
+
+let withModule = (moduleName, scope) => {
+  ...scope,
+  moduleName: Some(moduleName),
+};
+
+let withName = (scopeName, scope) => {
+  ...scope,
+  scopeName: Some(scopeName),
+  types: [Named(scopeName), ...scope.types],
+};
+
+let is = (scopeName, scope) =>
+  switch (scope.scopeName) {
+  | Some(s) => s == scopeName
+  | None => false
+  };
+
 let push = (t, scope) => scope.types = [t, ...scope.types];
-
-let clone = scope => {name: scope.name, types: scope.types};
-
-let make = () => {name: "", types: []};
-
-let makeNamed = name => {name, types: [Named(name)]};
 
 let has = (t, scope) =>
   List.exists(

@@ -86,7 +86,7 @@ let rec convertType =
       raise(TypeNotInScope(name, loc));
     };
 
-    if (name == scope.name) {
+    if (DynamicScope.is(name, scope)) {
       AstUtils.makeNamedType("t");
     } else if (CasingUtils.isFirstLetterLowercase(name)) {
       AstUtils.makeNamedType(name);
@@ -114,6 +114,7 @@ let rec convertType =
 
 let makeMethods =
     (
+      ~scope,
       ~interfaceName,
       ~interfaceType: Flow_parser.Ast.Type.Object.t(Flow_parser.Loc.t),
     )
@@ -147,7 +148,10 @@ let makeMethods =
              let propType =
                switch (value) {
                | Init(t) =>
-                 convertType(~scope=DynamicScope.makeNamed(interfaceName), t)
+                 convertType(
+                   ~scope=DynamicScope.withName(interfaceName, scope),
+                   t,
+                 )
                | Get((loc, _))
                | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
                };
@@ -166,6 +170,7 @@ let makeMethods =
 
 let makeInterfaceDeclaration =
     (
+      ~scope,
       ~interfaceName: string,
       ~interfaceType: Flow_parser.Ast.Type.Object.t(Flow_parser.Loc.t),
     )
@@ -203,7 +208,7 @@ let makeInterfaceDeclaration =
                    switch (value) {
                    | Init(t) =>
                      convertType(
-                       ~scope=DynamicScope.makeNamed(interfaceName),
+                       ~scope=DynamicScope.withName(interfaceName, scope),
                        t,
                      )
                    | Get((loc, _))
