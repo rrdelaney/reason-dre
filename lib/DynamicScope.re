@@ -10,6 +10,8 @@ type scope = {
 
 let make = () => {moduleName: None, scopeName: None, types: []};
 
+let clone = scope => {...scope, types: scope.types};
+
 let withModule = (moduleName, scope) => {
   ...scope,
   moduleName: Some(moduleName),

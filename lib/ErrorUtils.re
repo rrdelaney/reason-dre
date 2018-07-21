@@ -158,6 +158,10 @@ let withBufferedError = fn =>
     | _ => ()
     };
 
+  | TypeUtils.TypeVarsMustBeLowercase(_name, loc) =>
+    bufferErrMsg();
+    bufferErrorLoc(~loc, ~msg="Type variable names must be lowercase");
+
   | DreParser.ModuleNameMustBeStringLiteral(loc) => ()
   | TypeUtils.ObjectFieldNotSupported(loc) => ()
   };

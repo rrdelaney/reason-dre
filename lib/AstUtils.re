@@ -9,6 +9,12 @@ let makeNamedType = typeName : Parsetree.core_type => {
   ptyp_attributes: [],
 };
 
+let makeNamedTypeVar = typeName : Parsetree.core_type => {
+  ptyp_desc: Parsetree.Ptyp_var(typeName),
+  ptyp_loc: loc,
+  ptyp_attributes: [],
+};
+
 let makeAppliedType = (typeName, args) : Parsetree.core_type => {
   ptyp_desc:
     Parsetree.Ptyp_constr({txt: Longident.Lident(typeName), loc}, args),

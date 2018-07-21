@@ -54,7 +54,11 @@ let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
         ~moduleName=scope.moduleName,
         ~defaultExport=false,
         ~externName=functionName,
-        ~externType=TypeUtils.convertType(~scope, functionType),
+        ~externType=
+          TypeUtils.convertType(
+            ~scope=DynamicScope.clone(scope),
+            functionType,
+          ),
       ),
     ];
 

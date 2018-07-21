@@ -4,6 +4,7 @@ open Ast_404;
 exception TypeNotSupported(Loc.t);
 exception ObjectFieldNotSupported(Loc.t);
 exception TypeNotInScope(string, Loc.t);
+exception TypeVarsMustBeLowercase(string, Loc.t);
 
 let loc = AstUtils.loc;
 
@@ -20,6 +21,24 @@ let rec convertType =
     let (_loc, paramTypes) = f.params;
     let (retLoc, returnType) = f.return;
     let concreteParams = paramTypes.params;
+    let typeParams =
+      switch (f.tparams) {
+      | Some((_loc, params)) => params
+      | None => []
+      };
+
+    let functionScope = DynamicScope.clone(scope);
+    List.iter(
+      ((_, param): Ast.Type.ParameterDeclaration.TypeParam.t(Loc.t)) => {
+        let (loc, name) = param.name;
+        if (! CasingUtils.isFirstLetterLowercase(name)) {
+          raise(TypeVarsMustBeLowercase(name, loc));
+        };
+
+        DynamicScope.push(DynamicScope.TypeVariable(name), functionScope);
+      },
+      typeParams,
+    );
 
     let concreteParamTypes =
       List.map(
@@ -29,11 +48,11 @@ let rec convertType =
 
     AstUtils.makeFunctionType(
       if (List.length(concreteParamTypes) > 0) {
-        List.map(convertType(~scope), concreteParamTypes);
+        List.map(convertType(~scope=functionScope), concreteParamTypes);
       } else {
         [AstUtils.makeNamedType("unit")];
       },
-      convertType(~scope, (retLoc, returnType)),
+      convertType(~scope=functionScope, (retLoc, returnType)),
     );
 
   | Object(tt) =>
@@ -82,16 +101,13 @@ let rec convertType =
         raise(TypeNotSupported(loc))
       };
 
-    if (DreConfig.checkTypesInScope && ! DynamicScope.has(name, scope)) {
-      raise(TypeNotInScope(name, loc));
-    };
-
-    if (DynamicScope.is(name, scope)) {
-      AstUtils.makeNamedType("t");
-    } else if (CasingUtils.isFirstLetterLowercase(name)) {
-      AstUtils.makeNamedType(name);
-    } else {
-      AstUtils.makeNamedType(name ++ ".t");
+    switch (DynamicScope.get(name, scope)) {
+    | _ when DynamicScope.is(name, scope) => AstUtils.makeNamedType("t")
+    | Some(DynamicScope.TypeVariable(t)) => AstUtils.makeNamedTypeVar(t)
+    | Some(DynamicScope.Named(t)) when CasingUtils.isFirstLetterLowercase(t) =>
+      AstUtils.makeNamedType(t)
+    | Some(DynamicScope.Named(t)) => AstUtils.makeNamedType(t ++ ".t")
+    | None => raise(TypeNotInScope(name, loc))
     };
 
   | Array(t) => AstUtils.makeAppliedType("array", [convertType(~scope, t)])
