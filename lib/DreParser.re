@@ -64,6 +64,8 @@ let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
       raise(InterfaceNameMustBeUppercase(aliasName, nameLoc));
     };
 
+    DynamicScope.push(DynamicScope.Named(aliasName), scope);
+
     let aliasType = t.right;
 
     [
@@ -78,6 +80,8 @@ let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
     if (! CasingUtils.isFirstLetterUppercase(ifaceName)) {
       raise(InterfaceNameMustBeUppercase(ifaceName, nameLoc));
     };
+
+    DynamicScope.push(DynamicScope.Named(ifaceName), scope);
 
     let (_ifaceLoc, ifaceType) = i.body;
 

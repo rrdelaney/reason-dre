@@ -100,7 +100,7 @@ let bufferErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
           MsgBuf.Red("> "),
           MsgBuf.Str(line),
           MsgBuf.Endline,
-          MsgBuf.Str(String.make(loc.start.column + 6, ' ')),
+          MsgBuf.Str(String.make(loc.start.column + 5 + maxLineNumLen, ' ')),
           MsgBuf.Red(String.make(loc._end.column - loc.start.column, '^')),
           MsgBuf.Red(" " ++ msg),
           MsgBuf.Endline,
