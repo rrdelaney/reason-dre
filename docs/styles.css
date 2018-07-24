@@ -1,0 +1,161 @@
+@keyframes code-box-first {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+  }
+
+  8% {
+    transform: translate3d(0, -5px, 0);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  35% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  60% {
+    transform: translate3d(-200px, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-200px, 0, 0);
+  }
+}
+
+@keyframes code-box-second {
+  0% {
+    opacity: 0;
+  }
+
+  35% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  60% {
+    transform: translate3d(200px, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(200px, 0, 0);
+  }
+}
+
+@keyframes code-box-arrow {
+  0% {
+    opacity: 0;
+  }
+
+  35% {
+    opacity: 0.87;
+  }
+
+  100% {
+    opacity: 0.87;
+  }
+}
+
+body {
+  margin: 0;
+}
+
+a,
+h1 {
+  font-family: Montserrat;
+}
+
+code {
+  font-family: 'Anonymous Pro';
+}
+
+#splash {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+nav {
+  padding: 1rem;
+}
+
+nav a {
+  color: black;
+  opacity: 0.6;
+  text-decoration: none;
+  margin: 0 0.75rem;
+}
+
+nav a.right {
+  float: right;
+}
+
+nav a:visited {
+  color: black;
+}
+
+#splash header {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.splash-logo {
+  display: flex;
+  max-width: 350px;
+  min-width: 350px;
+  justify-content: space-between;
+  padding-top: 20vh;
+}
+
+.splash-logo h1 {
+  font-size: 24pt;
+  margin-top: 0;
+  max-width: 100px;
+  opacity: 0.87;
+}
+
+img.logo {
+  height: 200px;
+  width: 200px;
+}
+
+.splash-codebox {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.code-box {
+  border: 1px solid rgba(0, 0, 0, 0.87);
+  border-radius: 0.75em;
+  padding: 0.5rem;
+  color: rgba(0, 0, 0, 0.87);
+  background: linear-gradient(to right, #ccc 2em, black 2em, white 2.1em);
+}
+
+.code-box.first {
+  position: absolute;
+  z-index: 3;
+  animation: code-box-first 3s ease-in-out forwards;
+}
+
+.code-box.second {
+  position: absolute;
+  z-index: 2;
+  animation: code-box-second 3s ease-in-out forwards;
+}
+
+.code-box-arrow {
+  position: absolute;
+  z-index: 1;
+  animation: code-box-arrow 3s ease-in-out forwards;
+  font-size: 36pt;
+}
