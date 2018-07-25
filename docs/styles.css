@@ -18,11 +18,11 @@
   }
 
   60% {
-    transform: translate3d(-200px, 0, 0);
+    transform: translate3d(-250px, 0, 0);
   }
 
   100% {
-    transform: translate3d(-200px, 0, 0);
+    transform: translate3d(-250px, 0, 0);
   }
 }
 
@@ -37,11 +37,11 @@
   }
 
   60% {
-    transform: translate3d(200px, 0, 0);
+    transform: translate3d(250px, 0, 0);
   }
 
   100% {
-    transform: translate3d(200px, 0, 0);
+    transform: translate3d(250px, 0, 0);
   }
 }
 
@@ -68,6 +68,10 @@ h1 {
   font-family: Montserrat;
 }
 
+p {
+  font-family: 'Open Sans';
+}
+
 code {
   font-family: 'Anonymous Pro';
 }
@@ -87,6 +91,7 @@ nav a {
   opacity: 0.6;
   text-decoration: none;
   margin: 0 0.75rem;
+  transition: opacity 0.3s;
 }
 
 nav a.right {
@@ -95,6 +100,10 @@ nav a.right {
 
 nav a:visited {
   color: black;
+}
+
+nav a:hover {
+  opacity: 1;
 }
 
 #splash header {
@@ -138,7 +147,7 @@ img.logo {
   border-radius: 0.75em;
   padding: 0.5rem;
   color: rgba(0, 0, 0, 0.87);
-  background: linear-gradient(to right, #ccc 2em, black 2em, white 2.1em);
+  background: linear-gradient(to right, #ccc 3em, black 3em, white 3.1em);
 }
 
 .code-box.first {
@@ -158,4 +167,46 @@ img.logo {
   z-index: 1;
   animation: code-box-arrow 3s ease-in-out forwards;
   font-size: 36pt;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+}
+
+main nav {
+  margin-top: 0.83em;
+  max-width: 200px;
+}
+
+main nav a {
+  display: inline-block;
+  padding-bottom: 0.5rem;
+}
+
+main section {
+  flex: 1;
+  max-width: 800px;
+}
+
+main p {
+  font-size: 11pt;
+}
+
+.section-heading {
+  display: flex;
+}
+
+.section-heading hr {
+  border-style: solid;
+  align-self: center;
+  flex: 1;
+}
+
+.section-heading hr:first-child {
+  margin-right: 1rem;
+}
+
+.section-heading hr:last-child {
+  margin-left: 1rem;
 }

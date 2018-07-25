@@ -12,7 +12,7 @@
     <section id="splash">
       <nav>
         <a href="#">Home</a>
-        <a href="#what-and-why">What & Why</a>
+        <a href="#what-and-why">What &amp; Why</a>
         <a href="#docs">Docs</a>
         <a href="#faq">FAQ</a>
         <a class="right" href="https://github.com/rrdelaney/reason-dre">GitHub</a>
@@ -24,24 +24,64 @@
         </div>
         <div class="splash-codebox">
           <pre class="code-box first">
-<code><!--  -->1  declare interface Person {
-<!--        -->2    name: string;
-<!--        -->3    age: number;
-<!--        -->4    gender: string;
-<!--        -->5  }
+<code><!--  -->1    declare interface Person {
+<!--        -->2      name: string;
+<!--        -->3      age: number;
+<!--        -->4      displayName(): string;
+<!--        -->5    }
 <!--        -->6
-<!--        -->7  declare var Ryan: Person;</code></pre>
-  <i class="fas fa-arrow-right code-box-arrow"></i>
-  <pre class="code-box second">
-<code><!--  -->1  declare interface Person {
-<!--        -->2    name: string;
-<!--        -->3    age: number;
-<!--        -->4    gender: string;
-<!--        -->5  }
-<!--        -->6
-<!--        -->7  declare var Ryan: Person;</code></pre>
+<!--        -->7    declare var ryan: Person;
+<!--        -->8
+<!--        -->9
+<!--        -->10
+<!--        -->11
+<!--        -->12                                 </code></pre>
+          <i class="fas fa-arrow-right code-box-arrow"></i>
+          <pre class="code-box second">
+<code><!--  -->1    module Person = {
+<!--        -->2      [@bs.deriving abstract]
+<!--        -->3      type t = {
+<!--        -->4        name: string,
+<!--        -->5        age: float,
+<!--        -->6      };
+<!--        -->7      [@bs.send]
+<!--        -->8      external displayName :
+<!--        -->9        (t, unit) => string = "";
+<!--        -->10    };
+<!--        -->11   [@bs.val]
+<!--        -->12   external ryan : Person.t = "";</code></pre>
         </div>
       </header>
     </section>
+    <main>
+      <nav>
+        <a href="#what-and-why">What &amp; Why</a>
+        <a href="#installation">Installation</a>
+      </nav>
+      <section>
+        <div class="section-heading">
+          <hr>
+          <h1 id="what-and-why">What &amp; Why</h1>
+          <hr>
+        </div>
+        <p>
+          ReasonML is a solid language by itself, and BuckleScript is a fantastic compiler. However interop
+          is needed, and one of the most confusing parts of writing ReasonML is writing bindings to JS globals
+          and npm libraries. With BuckleScript, those bindings are written as part of the code itself. It's a
+          really flexable system and aligns closely with OCaml's C interop, but it can be a huge point of
+          confusion for newcomers. One of the main reasons behind this is that there's little direction on
+          where to go for some common JS idioms, like classes, interfaces, and functions that can take different
+          types of arguments. The tools are there, but they are difficult to discover and it takes time to learn
+          how to bind to various JS constructs.
+        </p>
+        <p>
+          There's a few JS type systems out there, like Flow and TypeScript, that offer a more declarative way
+          of introducing JS constructs into their type system. The easy part for them is that they don't have
+          to add a runtime or make those JS constructs idiomatic, because they're type systems on top of JS!
+          But those type systems have a ton of types written for them (especially TypeScript) because they're
+          stright-forward to write for a lot of the JS community.
+        </p>
+      </section>
+    </main>
   </body>
 </html>
