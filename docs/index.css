@@ -64,7 +64,8 @@ body {
 }
 
 a,
-h1 {
+h1,
+h2 {
   font-family: Montserrat;
 }
 
@@ -255,6 +256,14 @@ main nav a {
   padding-bottom: 0.5rem;
 }
 
+main nav a.sublink {
+  margin-left: 1.5rem;
+}
+
+a.sublink + a.link {
+  margin-top: 0.5rem;
+}
+
 main section {
   flex: 1;
   max-width: 800px;
@@ -300,4 +309,14 @@ main code {
   border-radius: 3px;
   padding: 0.5rem;
   opacity: 0.87;
+  margin: 0 0.33rem;
+}
+
+main h2 {
+  font-weight: 400;
+  opacity: 0.87;
+}
+
+.section-heading + h2 {
+  margin-top: 0;
 }
