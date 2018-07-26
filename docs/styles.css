@@ -82,6 +82,12 @@ code {
   height: 100vh;
 }
 
+@media screen and (max-width: 767px) {
+  #splash {
+    height: inherit;
+  }
+}
+
 nav {
   padding: 1rem;
 }
@@ -96,6 +102,12 @@ nav a {
 
 nav a.right {
   float: right;
+}
+
+@media screen and (max-width: 767px) {
+  nav a.collapse {
+    display: none;
+  }
 }
 
 nav a:visited {
@@ -122,11 +134,25 @@ nav a:hover {
   padding-top: 5vh;
 }
 
+@media screen and (max-width: 767px) {
+  .splash-logo {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
 .splash-logo h1 {
   font-size: 24pt;
   margin-top: 0;
   max-width: 100px;
   opacity: 0.87;
+}
+
+@media screen and (max-width: 767px) {
+  .splash-logo h1 {
+    padding-top: 1rem;
+    max-width: 200px;
+  }
 }
 
 img.logo {
@@ -140,6 +166,13 @@ img.logo {
   justify-content: center;
   align-items: center;
   flex: 1;
+}
+
+@media screen and (max-width: 767px) {
+  .splash-codebox {
+    position: inherit !important;
+    flex-direction: column;
+  }
 }
 
 .code-box {
@@ -162,6 +195,13 @@ img.logo {
   animation: code-box-second 3s ease-in-out forwards;
 }
 
+@media screen and (max-width: 767px) {
+  .code-box {
+    position: inherit !important;
+    animation: none !important;
+  }
+}
+
 .code-box-arrow {
   position: absolute;
   z-index: 1;
@@ -169,9 +209,40 @@ img.logo {
   font-size: 36pt;
 }
 
+@media screen and (max-width: 767px) {
+  .code-box-arrow {
+    display: none !important;
+  }
+}
+
+.code-box-arrow-down {
+  display: none;
+  z-index: 1;
+  font-size: 36pt;
+}
+
+@media screen and (max-width: 767px) {
+  .code-box-arrow-down {
+    display: block;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .code-box {
+    position: inherit !important;
+    animation: none !important;
+  }
+}
+
 main {
   display: flex;
   justify-content: center;
+}
+
+@media screen and (max-width: 767px) {
+  main {
+    flex-direction: column;
+  }
 }
 
 main nav {
@@ -187,6 +258,12 @@ main nav a {
 main section {
   flex: 1;
   max-width: 800px;
+}
+
+@media screen and (max-width: 767px) {
+  main section {
+    padding: 1rem;
+  }
 }
 
 main p {
