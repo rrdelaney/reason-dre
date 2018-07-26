@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css?family=Anonymous+Pro|Montserrat|Open+Sans" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/solid.css" integrity="sha384-S2gVFTIn1tJ/Plf+40+RRAxBCiBU5oAMFUJxTXT3vOlxtXm7MGjVj62mDpbujs4C" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/fontawesome.css" integrity="sha384-0b7ERybvrT5RZyD80ojw6KNKz6nIAlgOKXIcJ0CV7A6Iia8yt2y1bBfLBOwoc9fQ" crossorigin="anonymous">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="index.css">
   </head>
   <body>
     <section id="splash">
@@ -17,6 +17,7 @@
         <a href="#docs">Docs</a>
         <a href="#faq">FAQ</a>
         <a class="right" href="https://github.com/rrdelaney/reason-dre">GitHub</a>
+        <a class="right" href="try.html">Try</a>
       </nav>
       <header>
         <div class="splash-logo">
@@ -55,10 +56,11 @@
         </div>
       </header>
     </section>
-    <main>
+    <main id="docs">
       <nav>
         <a href="#what-and-why">What &amp; Why</a>
         <a href="#installation">Installation</a>
+        <a href="#build-system-integration">Build System Integration</a>
       </nav>
       <section>
         <div class="section-heading">
@@ -82,6 +84,21 @@
           to add a runtime or make those JS constructs idiomatic, because they're type systems on top of JS!
           But those type systems have a ton of types written for them (especially TypeScript) because they're
           stright-forward to write for a lot of the JS community.
+        </p>
+        <div class="section-heading">
+          <hr>
+          <h1 id="installation">Installation</h1>
+          <hr>
+        </div>
+        <p>
+          <code>npm install reason-dre</code>
+        </p>
+        <div class="section-heading">
+          <hr>
+          <h1 id="build-system-integration">Build System Integration</h1>
+          <hr>
+        </div>
+        <p>
         </p>
       </section>
     </main>

@@ -1,0 +1,23 @@
+body {
+  margin: 0;
+}
+
+nav {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.38);
+}
+
+nav a img {
+  height: 30px;
+  width: 30px;
+}
+
+.try-container {
+  height: calc(100vh - 51px);
+  display: flex;
+}
+
+.try-container .CodeMirror {
+  flex: 1;
+  height: 100%;
+}

@@ -268,10 +268,17 @@ main section {
 
 main p {
   font-size: 11pt;
+  color: black;
+  opacity: 0.6;
 }
 
 .section-heading {
   display: flex;
+}
+
+.section-heading h1 {
+  color: black;
+  opacity: 0.87;
 }
 
 .section-heading hr {
@@ -286,4 +293,11 @@ main p {
 
 .section-heading hr:last-child {
   margin-left: 1rem;
+}
+
+main code {
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  border-radius: 3px;
+  padding: 0.5rem;
+  opacity: 0.87;
 }
