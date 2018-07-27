@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8">
     <title>Reason DRE</title>
+    <link href="https://fonts.googleapis.com/css?family=Anonymous+Pro|Montserrat|Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/solid.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/fontawesome.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/codemirror.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/addon/lint/lint.min.css" />
     <link rel="stylesheet" href="index.css">
@@ -10,6 +13,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/addon/lint/lint.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.0/addon/mode/simple.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/addon/edit/closebrackets.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/mode/rust/rust.min.js"></script>
     <script src="DreJS.bc.js"></script>
@@ -21,8 +26,14 @@
       </a>
     </nav>
     <main class="try-container">
-      <textarea id="input"></textarea>
-      <textarea id="output"></textarea>
+      <div class="editor-container">
+        <label>Dre</label>
+        <textarea id="input"></textarea>
+      </div>
+      <div class="editor-container">
+        <label>Reason</label>
+        <textarea id="output"></textarea>
+      </div>
     </main>
     <script src="try.js"></script>
   </body>

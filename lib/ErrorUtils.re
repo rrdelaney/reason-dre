@@ -162,7 +162,10 @@ let bufferErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
   MsgBuf.push([MsgBuf.Endline]);
 };
 
-let bufferHint = (~msg) => MsgBuf.push([MsgBuf.Str("  " ++ msg)]);
+let bufferHint = (~msg) => {
+  MsgBuf.push([MsgBuf.Diagnostic("\n" ++ msg)]);
+  MsgBuf.push([MsgBuf.Str("  " ++ msg)]);
+};
 
 let withBufferedError = fn =>
   try (ignore(fn())) {

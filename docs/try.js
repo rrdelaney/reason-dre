@@ -20,7 +20,9 @@ const inputEditor = CodeMirror.fromTextArea(inputEditorEl, {
   lineNumbers: true,
   mode: 'text/typescript',
   gutters: ['CodeMirror-lint-markers'],
-  lint: true
+  lint: true,
+  autoCloseBrackets: true,
+  matchBrackets: true
 })
 
 const outputEditorEl = document.getElementById('output')
@@ -38,3 +40,17 @@ inputEditor.on('change', () => {
     outputEditor.setValue(compiledOutput)
   }
 })
+
+const exampleDre = `
+declare module "fetch" {
+  declare interface FetchOptions {
+    method: string;
+    mode: string;
+    body: string;
+  }
+
+  declare function fetch(url: string, options: FetchOptions): string;
+}
+`.trim()
+
+inputEditor.setValue(exampleDre)

@@ -12,12 +12,36 @@ nav a img {
   width: 30px;
 }
 
+nav a:not(:first-child) {
+  vertical-align: super;
+}
+
 .try-container {
   height: calc(100vh - 51px);
   display: flex;
 }
 
-.try-container .CodeMirror {
+.editor-container {
   flex: 1;
   height: 100%;
+  position: relative;
+}
+
+.CodeMirror {
+  height: 100%;
+}
+
+.editor-container label {
+  display: flex;
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  font-size: 10pt;
+  opacity: 0.6;
+  border-radius: 0 0 0 5px;
+  backdrop-filter: blur(5px);
+  font-family: 'Open Sans';
 }
