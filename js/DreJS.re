@@ -5,7 +5,15 @@ let compile = (filename, source) => {
       source: Js.to_string(source),
     };
 
-  Js.string(Lib.DreParser.parse(file));
+  let compiled = ref("");
+  let errMsg = ref("");
+
+  Lib.ErrorUtils.withBufferedError(() =>
+    compiled := Lib.DreParser.parse(file)
+  );
+  errMsg := Lib.ErrorUtils.MsgBuf.flushDiagnostics();
+
+  Js.array([|Js.string(compiled^), Js.string(errMsg^)|]);
 };
 
 Js.export("compile", compile);

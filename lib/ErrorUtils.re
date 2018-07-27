@@ -1,7 +1,8 @@
 module MsgBuf = {
   type message =
-    | Str(string)
     | Endline
+    | Diagnostic(string)
+    | Str(string)
     | Red(string)
     | Cyan(string);
 
@@ -20,6 +21,7 @@ module MsgBuf = {
             | Red(str) => Chalk.red(str)
             | Cyan(str) => Chalk.cyan(str)
             | Endline => "\n"
+            | Diagnostic(str) => ""
             }
           ),
         buffer^,
@@ -41,6 +43,29 @@ module MsgBuf = {
             | Red(str)
             | Cyan(str) => str
             | Endline => "\n"
+            | Diagnostic(str) => ""
+            }
+          ),
+        buffer^,
+        "",
+      );
+
+    buffer := [];
+    flushedStr;
+  };
+
+  let flushDiagnostics = () => {
+    let flushedStr =
+      List.fold_right(
+        (msg, buf) =>
+          buf
+          ++ (
+            switch (msg) {
+            | Str(_)
+            | Red(_)
+            | Cyan(_)
+            | Endline => ""
+            | Diagnostic(str) => str
             }
           ),
         buffer^,
@@ -59,6 +84,20 @@ let bufferErrMsg = () =>
   ]);
 
 let bufferErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
+  MsgBuf.push([
+    MsgBuf.Diagnostic(
+      string_of_int(loc.start.line)
+      ++ ":"
+      ++ string_of_int(loc.start.column)
+      ++ ":"
+      ++ string_of_int(loc._end.line)
+      ++ ":"
+      ++ string_of_int(loc._end.column)
+      ++ ":"
+      ++ msg,
+    ),
+  ]);
+
   let source =
     switch (loc.source) {
     | Some(Flow_parser.File_key.SourceFile(src)) => src
@@ -87,18 +126,20 @@ let bufferErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
 
   let linesWithNumber =
     Array.mapi(
-      (i, line) =>
-        Chalk.cyan(padStr(string_of_int(i + startLine + 1)) ++ " | ")
-        ++ line,
+      (i, line) => (
+        MsgBuf.Cyan(padStr(string_of_int(i + startLine + 1)) ++ " | "),
+        MsgBuf.Str(line),
+      ),
       relevantLines,
     );
 
   Array.iteri(
-    (i, line) =>
+    (i, (lineNum, line)) =>
       if (isSingleLineErr && i + startLine + 1 == loc.start.line) {
         MsgBuf.push([
           MsgBuf.Red("> "),
-          MsgBuf.Str(line),
+          lineNum,
+          line,
           MsgBuf.Endline,
           MsgBuf.Str(String.make(loc.start.column + 5 + maxLineNumLen, ' ')),
           MsgBuf.Red(String.make(loc._end.column - loc.start.column, '^')),
@@ -111,9 +152,9 @@ let bufferErrorLoc = (~loc: Flow_parser.Loc.t, ~msg) => {
                  && i
                  + startLine
                  + 1 <= loc._end.line) {
-        MsgBuf.push([MsgBuf.Str("> " ++ line), MsgBuf.Endline]);
+        MsgBuf.push([MsgBuf.Str("> "), lineNum, line, MsgBuf.Endline]);
       } else {
-        MsgBuf.push([MsgBuf.Str("  " ++ line), MsgBuf.Endline]);
+        MsgBuf.push([MsgBuf.Str("  "), lineNum, line, MsgBuf.Endline]);
       },
     linesWithNumber,
   );
