@@ -101,12 +101,26 @@ let rec convertType =
         raise(TypeNotSupported(loc))
       };
 
+    let typeArgs =
+      switch (tt.targs) {
+      | Some((loc, typeArgs)) =>
+        Some(List.map(convertType(~scope), typeArgs))
+      | None => None
+      };
+
+    let applyTypeArgs =
+      switch (typeArgs) {
+      | Some(ts) => (t => AstUtils.makeAppliedType(t, ts))
+      | None => (t => AstUtils.makeNamedType(t))
+      };
+
     switch (DynamicScope.get(name, scope)) {
-    | _ when DynamicScope.is(name, scope) => AstUtils.makeNamedType("t")
+    | _ when DynamicScope.is(name, scope) => applyTypeArgs("t")
     | Some(DynamicScope.TypeVariable(t)) => AstUtils.makeNamedTypeVar(t)
     | Some(DynamicScope.Named(t)) when CasingUtils.isFirstLetterLowercase(t) =>
-      AstUtils.makeNamedType(t)
-    | Some(DynamicScope.Named(t)) => AstUtils.makeNamedType(t ++ ".t")
+      applyTypeArgs(t)
+    | Some(DynamicScope.Named(t)) => applyTypeArgs(t ++ ".t")
+    | Some(DynamicScope.BuiltIn({reasonName})) => applyTypeArgs(reasonName)
     | None => raise(TypeNotInScope(name, loc))
     };
 

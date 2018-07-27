@@ -124,6 +124,11 @@ let parse = file => {
   let (_, statements, _) = ast;
 
   let programScope = DynamicScope.make();
+  List.iter(
+    t => DynamicScope.push(DynamicScope.BuiltIn(t), programScope),
+    DrePrelude.types,
+  );
+
   let program =
     statements
     |> List.map(handleStatement(~scope=programScope))

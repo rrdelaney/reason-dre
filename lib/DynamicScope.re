@@ -1,6 +1,12 @@
+type builtIn = {
+  dreName: string,
+  reasonName: string,
+};
+
 type scopeType =
   | TypeVariable(string)
-  | Named(string);
+  | Named(string)
+  | BuiltIn(builtIn);
 
 type scope = {
   moduleName: option(string),
@@ -35,7 +41,8 @@ let has = (t, scope) =>
   List.exists(
     fun
     | TypeVariable(name) => t == name
-    | Named(name) => t == name,
+    | Named(name) => t == name
+    | BuiltIn({dreName}) => t == dreName,
     scope.types,
   );
 
@@ -44,7 +51,8 @@ let get = (t, scope) =>
   |> List.filter(
        fun
        | TypeVariable(name) => t == name
-       | Named(name) => t == name,
+       | Named(name) => t == name
+       | BuiltIn({dreName}) => t == dreName,
      )
   |> (
     fun
