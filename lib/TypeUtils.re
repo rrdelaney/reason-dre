@@ -203,10 +203,12 @@ let makeInterfaceDeclaration =
       ~scope,
       ~interfaceName: string,
       ~interfaceType: Flow_parser.Ast.Type.Object.t(Flow_parser.Loc.t),
+      ~typeParamNames: list(string),
     )
     : Parsetree.structure_item =>
   AstUtils.makeInterfaceDeclaration(
     ~name="t",
+    ~typeParamNames,
     ~fields=
       Ast.Type.Object.(
         interfaceType.properties

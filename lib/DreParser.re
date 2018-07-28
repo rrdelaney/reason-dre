@@ -85,6 +85,31 @@ let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
       raise(InterfaceNameMustBeUppercase(ifaceName, nameLoc));
     };
 
+    let tParams =
+      switch (i.tparams) {
+      | Some((loc, params)) => params
+      | None => []
+      };
+
+    let typeParamNames =
+      List.map(
+        ((loc, param): Ast.Type.ParameterDeclaration.TypeParam.t(Loc.t)) => {
+          let (_, name) = param.name;
+          if (! CasingUtils.isFirstLetterLowercase(name)) {
+            raise(TypeUtils.TypeVarsMustBeLowercase(name, loc));
+          };
+
+          name;
+        },
+        tParams,
+      );
+
+    List.iter(
+      paramName =>
+        DynamicScope.push(DynamicScope.TypeVariable(paramName), scope),
+      typeParamNames,
+    );
+
     DynamicScope.push(DynamicScope.Named(ifaceName), scope);
 
     let (_ifaceLoc, ifaceType) = i.body;
@@ -95,6 +120,7 @@ let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
         [
           TypeUtils.makeInterfaceDeclaration(
             ~scope,
+            ~typeParamNames,
             ~interfaceName=ifaceName,
             ~interfaceType=ifaceType,
           ),

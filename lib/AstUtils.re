@@ -159,7 +159,9 @@ let makeMethodExtern = (~methodName, ~methodType) : Parsetree.structure_item => 
   pstr_loc: loc,
 };
 
-let makeInterfaceDeclaration = (~name, ~fields) : Parsetree.structure_item => {
+let makeInterfaceDeclaration =
+    (~name, ~typeParamNames, ~fields)
+    : Parsetree.structure_item => {
   pstr_desc:
     Parsetree.Pstr_type(
       Asttypes.Recursive,
@@ -169,7 +171,11 @@ let makeInterfaceDeclaration = (~name, ~fields) : Parsetree.structure_item => {
             txt: name,
             loc,
           },
-          ptype_params: [],
+          ptype_params:
+            List.map(
+              paramName => (makeNamedTypeVar(paramName), Asttypes.Invariant),
+              typeParamNames,
+            ),
           ptype_cstrs: [],
           ptype_kind:
             Parsetree.Ptype_record(
