@@ -44,7 +44,6 @@ inputEditor.on('change', () => {
 const exampleDre = `
 declare module "fetch" {
   declare interface FetchOptions {
-    method: string;
     mode: string;
     body: string;
   }
