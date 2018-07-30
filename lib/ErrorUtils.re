@@ -206,6 +206,18 @@ let withBufferedError = fn =>
     bufferErrMsg();
     bufferErrorLoc(~loc, ~msg="Type variable names must be lowercase");
 
+  | TypeUtils.NotEnoughTypeArguments(typeName, expected, applied, loc) =>
+    bufferErrMsg();
+    bufferErrorLoc(
+      ~loc,
+      ~msg=
+        typeName
+        ++ " expected "
+        ++ string_of_int(expected)
+        ++ " type arguments but here it was applied with "
+        ++ string_of_int(applied),
+    );
+
   | DreParser.ModuleNameMustBeStringLiteral(loc) => ()
   | TypeUtils.ObjectFieldNotSupported(loc) => ()
   };

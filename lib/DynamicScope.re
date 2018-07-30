@@ -3,9 +3,20 @@ type builtIn = {
   reasonName: string,
 };
 
+type interface = {
+  name: string,
+  typeParamCount: int,
+};
+
+type typeAlias = {
+  name: string,
+  typeParamCount: int,
+};
+
 type scopeType =
   | TypeVariable(string)
-  | Named(string)
+  | TypeAlias(typeAlias)
+  | Interface(interface)
   | BuiltIn(builtIn);
 
 type scope = {
@@ -23,10 +34,10 @@ let withModule = (moduleName, scope) => {
   moduleName: Some(moduleName),
 };
 
-let withName = (scopeName, scope) => {
+let withInterface = (~name, ~typeParamCount, scope) => {
   ...scope,
-  scopeName: Some(scopeName),
-  types: [Named(scopeName), ...scope.types],
+  scopeName: Some(name),
+  types: [Interface({name, typeParamCount}), ...scope.types],
 };
 
 let is = (scopeName, scope) =>
@@ -41,7 +52,8 @@ let has = (t, scope) =>
   List.exists(
     fun
     | TypeVariable(name) => t == name
-    | Named(name) => t == name
+    | Interface({name}) => t == name
+    | TypeAlias({name}) => t == name
     | BuiltIn({dreName}) => t == dreName,
     scope.types,
   );
@@ -51,7 +63,8 @@ let get = (t, scope) =>
   |> List.filter(
        fun
        | TypeVariable(name) => t == name
-       | Named(name) => t == name
+       | Interface({name}) => t == name
+       | TypeAlias({name}) => t == name
        | BuiltIn({dreName}) => t == dreName,
      )
   |> (

@@ -5,6 +5,7 @@ exception TypeNotSupported(Loc.t);
 exception ObjectFieldNotSupported(Loc.t);
 exception TypeNotInScope(string, Loc.t);
 exception TypeVarsMustBeLowercase(string, Loc.t);
+exception NotEnoughTypeArguments(string, int, int, Loc.t);
 
 let loc = AstUtils.loc;
 
@@ -101,11 +102,23 @@ let rec convertType =
         raise(TypeNotSupported(loc))
       };
 
+    let typeArgsLoc =
+      switch (tt.targs) {
+      | Some((loc, _)) => loc
+      | None => Loc.none
+      };
+
     let typeArgs =
       switch (tt.targs) {
       | Some((loc, typeArgs)) =>
         Some(List.map(convertType(~scope), typeArgs))
       | None => None
+      };
+
+    let typeArgCount =
+      switch (typeArgs) {
+      | Some(ts) => List.length(ts)
+      | None => 0
       };
 
     let applyTypeArgs =
@@ -117,9 +130,18 @@ let rec convertType =
     switch (DynamicScope.get(name, scope)) {
     | _ when DynamicScope.is(name, scope) => applyTypeArgs("t")
     | Some(DynamicScope.TypeVariable(t)) => AstUtils.makeNamedTypeVar(t)
-    | Some(DynamicScope.Named(t)) when CasingUtils.isFirstLetterLowercase(t) =>
-      applyTypeArgs(t)
-    | Some(DynamicScope.Named(t)) => applyTypeArgs(t ++ ".t")
+    | Some(DynamicScope.TypeAlias({name})) => applyTypeArgs(name)
+    | Some(DynamicScope.Interface({name, typeParamCount}))
+        when typeParamCount != typeArgCount =>
+      raise(
+        NotEnoughTypeArguments(
+          name,
+          typeParamCount,
+          typeArgCount,
+          typeArgsLoc,
+        ),
+      )
+    | Some(DynamicScope.Interface({name})) => applyTypeArgs(name ++ ".t")
     | Some(DynamicScope.BuiltIn({reasonName})) => applyTypeArgs(reasonName)
     | None => raise(TypeNotInScope(name, loc))
     };
@@ -179,7 +201,12 @@ let makeMethods =
                switch (value) {
                | Init(t) =>
                  convertType(
-                   ~scope=DynamicScope.withName(interfaceName, scope),
+                   ~scope=
+                     DynamicScope.withInterface(
+                       ~name=interfaceName,
+                       ~typeParamCount=0,
+                       scope,
+                     ),
                    t,
                  )
                | Get((loc, _))
@@ -240,7 +267,12 @@ let makeInterfaceDeclaration =
                    switch (value) {
                    | Init(t) =>
                      convertType(
-                       ~scope=DynamicScope.withName(interfaceName, scope),
+                       ~scope=
+                         DynamicScope.withInterface(
+                           ~name=interfaceName,
+                           ~typeParamCount=0,
+                           scope,
+                         ),
                        t,
                      )
                    | Get((loc, _))

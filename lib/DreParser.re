@@ -68,7 +68,10 @@ let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
       raise(InterfaceNameMustBeUppercase(aliasName, nameLoc));
     };
 
-    DynamicScope.push(DynamicScope.Named(aliasName), scope);
+    DynamicScope.push(
+      DynamicScope.TypeAlias({name: aliasName, typeParamCount: 0}),
+      scope,
+    );
 
     let aliasType = t.right;
 
@@ -110,7 +113,13 @@ let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
       typeParamNames,
     );
 
-    DynamicScope.push(DynamicScope.Named(ifaceName), scope);
+    DynamicScope.push(
+      DynamicScope.Interface({
+        name: ifaceName,
+        typeParamCount: List.length(typeParamNames),
+      }),
+      scope,
+    );
 
     let (_ifaceLoc, ifaceType) = i.body;
 
