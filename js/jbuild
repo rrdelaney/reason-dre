@@ -3,4 +3,11 @@
 (executable
  ((name DreJS)
   (public_name DreJS)
+  (modules DreJS)
+  (libraries (js_of_ocaml lib))))
+
+(executable
+ ((name DreJS_command)
+  (modules DreJS_command)
+  (public_name DreJS_command)
   (libraries (js_of_ocaml lib))))
