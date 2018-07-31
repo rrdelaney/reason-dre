@@ -64,13 +64,11 @@
         <a href="#build-system-integration" class="sublink">Build System Integration</a>
         <a href="#introduction" class="link">Introduction</a>
         <a href="#dre-files" class="sublink">DRE Files</a>
+        <a href="#bindings" class="link">Writing Bindings</a>
+        <a href="#bindings-variable" class="sublink">Binding to a variable</a>
       </nav>
       <section>
-        <div class="section-heading">
-          <hr>
-          <h1 id="what-and-why">What &amp; Why</h1>
-          <hr>
-        </div>
+        <h1 id="what-and-why">What &amp; Why</h1>
         <p>
           ReasonML is a solid language by itself, and BuckleScript is a fantastic compiler. However interop
           is needed, and one of the most confusing parts of writing ReasonML is writing bindings to JS globals
@@ -88,17 +86,25 @@
           But those type systems have a ton of types written for them (especially TypeScript) because they're
           stright-forward to write for a lot of the JS community.
         </p>
-        <div class="section-heading">
-          <hr>
-          <h1 id="getting-started">Getting Started</h1>
-          <hr>
-        </div>
+        <h1 id="getting-started">Getting Started</h1>
         <h2 id="installation">Installation</h2>
         <p>
           Installing the CLI is easy, just run <code>npm install reason-dre</code>.
         </p>
         <h2 id="build-system-integration">BSB Integration</h2>
         <p>
+        </p>
+        <h1 id="bindings">Writing Bindings</h1>
+        <h2 id="bindings-variable">Binding to a variable</h2>
+        <p>
+          Binding to a variable is like:
+          <code class="block">
+<!--     -->declare var x: number;
+<!--     -->declare class A {
+<!--     -->  declare var e
+<!--     -->}
+          </code>
+          yayyy
         </p>
       </section>
     </main>

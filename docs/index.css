@@ -281,27 +281,28 @@ main p {
   opacity: 0.6;
 }
 
-.section-heading {
+main h1 {
   display: flex;
-}
-
-.section-heading h1 {
   color: black;
   opacity: 0.87;
 }
 
-.section-heading hr {
+main h1::before {
+  border-width: 1px;
+  content: '';
+  margin-right: 1rem;
   border-style: solid;
   align-self: center;
   flex: 1;
 }
 
-.section-heading hr:first-child {
-  margin-right: 1rem;
-}
-
-.section-heading hr:last-child {
+main h1::after {
+  border-width: 1px;
+  content: '';
   margin-left: 1rem;
+  border-style: solid;
+  align-self: center;
+  flex: 1;
 }
 
 main code {
@@ -312,11 +313,19 @@ main code {
   margin: 0 0.33rem;
 }
 
+main code.block {
+  display: block;
+  width: fit-content;
+  margin: 0 0.5rem;
+  white-space: pre;
+  border: none;
+}
+
 main h2 {
   font-weight: 400;
   opacity: 0.87;
 }
 
-.section-heading + h2 {
+h1 + h2 {
   margin-top: 0;
 }
