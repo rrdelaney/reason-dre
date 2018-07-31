@@ -6,6 +6,7 @@ exception ObjectFieldNotSupported(Loc.t);
 exception TypeNotInScope(string, Loc.t);
 exception TypeVarsMustBeLowercase(string, Loc.t);
 exception NotEnoughTypeArguments(string, int, int, Loc.t);
+exception TypeofMustBeOfClass(Loc.t);
 
 let loc = AstUtils.loc;
 
@@ -143,11 +144,13 @@ let rec convertType =
       )
     | Some(DynamicScope.Interface({name})) => applyTypeArgs(name ++ ".t")
     | Some(DynamicScope.BuiltIn({reasonName})) => applyTypeArgs(reasonName)
+    | Some(DynamicScope.ClassDef({name})) => applyTypeArgs(name ++ ".t")
     | None => raise(TypeNotInScope(name, loc))
     };
 
   | Array(t) => AstUtils.makeAppliedType("array", [convertType(~scope, t)])
 
+  | Typeof(tt) => raise(TypeNotSupported(loc))
   | Interface(tt) => raise(TypeNotSupported(loc))
   | Empty => raise(TypeNotSupported(loc))
   | Any => raise(TypeNotSupported(loc))
@@ -156,13 +159,65 @@ let rec convertType =
   | Nullable(tt) => raise(TypeNotSupported(loc))
   | Union(a, b, c) => raise(TypeNotSupported(loc))
   | Intersection(a, b, c) => raise(TypeNotSupported(loc))
-  | Typeof(tt) => raise(TypeNotSupported(loc))
   | Tuple(tt) => raise(TypeNotSupported(loc))
   | StringLiteral(tt) => raise(TypeNotSupported(loc))
   | NumberLiteral(tt) => raise(TypeNotSupported(loc))
   | BooleanLiteral(tt) => raise(TypeNotSupported(loc))
   | Exists => raise(TypeNotSupported(loc))
   };
+
+let makeConstructor =
+    (
+      ~scope,
+      ~bindingName,
+      ~interfaceName,
+      ~interfaceType: Flow_parser.Ast.Type.Object.t(Flow_parser.Loc.t),
+    )
+    : Parsetree.structure_item =>
+  Ast.Type.Object.(
+    interfaceType.properties
+    |> List.filter(
+         fun
+         | Property((loc, {key: Identifier((_, "constructor"))})) => true
+         | _ => false,
+       )
+    |> List.map(
+         fun
+         | Property((loc, prop)) => {
+             open Ast.Type.Object.Property;
+
+             let {value} = prop;
+
+             let propType =
+               switch (value) {
+               | Init(t) =>
+                 convertType(
+                   ~scope=
+                     DynamicScope.withInterface(
+                       ~name=interfaceName,
+                       ~typeParamCount=0,
+                       scope,
+                     ),
+                   t,
+                 )
+               | Get((loc, _))
+               | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
+               };
+
+             AstUtils.makeNewExtern(
+               ~moduleName=scope.moduleName,
+               ~localName="make",
+               ~externName=bindingName,
+               ~externType=propType,
+             );
+           }
+         | SpreadProperty((loc, _))
+         | Indexer((loc, _))
+         | CallProperty((loc, _))
+         | InternalSlot((loc, _)) => raise(ObjectFieldNotSupported(loc)),
+       )
+    |> List.hd
+  );
 
 let makeMethods =
     (
@@ -175,6 +230,7 @@ let makeMethods =
     interfaceType.properties
     |> List.filter(
          fun
+         | Property((loc, {key: Identifier((_, "constructor"))})) => false
          | Property((loc, {_method})) => _method
          | SpreadProperty((loc, _))
          | Indexer((loc, _))

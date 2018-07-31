@@ -186,6 +186,10 @@ let withBufferedError = fn =>
     bufferErrMsg();
     bufferErrorLoc(~loc, ~msg="Interface names must be uppercase");
 
+  | DreParser.ClassNameMustBeUppercase(_name, loc) =>
+    bufferErrMsg();
+    bufferErrorLoc(~loc, ~msg="Class names must be uppercase");
+
   | TypeUtils.TypeNotSupported(loc) =>
     bufferErrMsg();
     bufferErrorLoc(~loc, ~msg="This type isn't supported yet, sorry!");

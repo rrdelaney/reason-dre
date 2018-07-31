@@ -13,10 +13,17 @@ type typeAlias = {
   typeParamCount: int,
 };
 
+type classDef = {
+  name: string,
+  make: string => Ast_404.Parsetree.structure_item,
+  typeParamCount: int,
+};
+
 type scopeType =
   | TypeVariable(string)
   | TypeAlias(typeAlias)
   | Interface(interface)
+  | ClassDef(classDef)
   | BuiltIn(builtIn);
 
 type scope = {
@@ -51,10 +58,11 @@ let push = (t, scope) => scope.types = [t, ...scope.types];
 let has = (t, scope) =>
   List.exists(
     fun
-    | TypeVariable(name) => t == name
-    | Interface({name}) => t == name
-    | TypeAlias({name}) => t == name
-    | BuiltIn({dreName}) => t == dreName,
+    | TypeVariable(name)
+    | Interface({name})
+    | ClassDef({name})
+    | TypeAlias({name})
+    | BuiltIn({dreName: name}) => t == name,
     scope.types,
   );
 
@@ -62,10 +70,11 @@ let get = (t, scope) =>
   scope.types
   |> List.filter(
        fun
-       | TypeVariable(name) => t == name
-       | Interface({name}) => t == name
-       | TypeAlias({name}) => t == name
-       | BuiltIn({dreName}) => t == dreName,
+       | TypeVariable(name)
+       | Interface({name})
+       | TypeAlias({name})
+       | ClassDef({name})
+       | BuiltIn({dreName: name}) => t == name,
      )
   |> (
     fun

@@ -6,6 +6,7 @@ exception ModuleNameMustBeStringLiteral(Loc.t);
 exception VarMustHaveType(Loc.t);
 exception TypeAliasNameMustBeLowercase(string, Loc.t);
 exception InterfaceNameMustBeUppercase(string, Loc.t);
+exception ClassNameMustBeUppercase(string, Loc.t);
 
 type file = {
   source: string,
@@ -36,14 +37,29 @@ let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
       | None => raise(VarMustHaveType(loc))
       };
 
-    [
-      AstUtils.makeExtern(
-        ~moduleName=scope.moduleName,
-        ~defaultExport=false,
-        ~externName=varName,
-        ~externType=TypeUtils.convertType(~scope, varType),
-      ),
-    ];
+    switch (varType) {
+    | (loc, Ast.Type.Typeof((_, Ast.Type.Generic(tt)))) =>
+      let (loc, name) =
+        switch (tt.id) {
+        | Ast.Type.Generic.Identifier.Unqualified(id) => id
+        | Ast.Type.Generic.Identifier.Qualified((loc, _)) =>
+          raise(TypeUtils.TypeNotSupported(loc))
+        };
+
+      switch (DynamicScope.get(name, scope)) {
+      | Some(DynamicScope.ClassDef({make})) => [make(varName)]
+      | _ => raise(TypeUtils.TypeofMustBeOfClass(loc))
+      };
+
+    | _ => [
+        AstUtils.makeExtern(
+          ~moduleName=scope.moduleName,
+          ~defaultExport=false,
+          ~externName=varName,
+          ~externType=TypeUtils.convertType(~scope, varType),
+        ),
+      ]
+    };
 
   | Ast.Statement.DeclareFunction(f) =>
     let (_fnameLoc, functionName) = f.id;
@@ -141,6 +157,72 @@ let rec handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
         ],
       ),
     ];
+
+  | Ast.Statement.DeclareClass(c) =>
+    let (nameLoc, className) = c.id;
+    if (! CasingUtils.isFirstLetterUppercase(className)) {
+      raise(ClassNameMustBeUppercase(className, nameLoc));
+    };
+
+    let tParams =
+      switch (c.tparams) {
+      | Some((loc, params)) => params
+      | None => []
+      };
+
+    let typeParamNames =
+      List.map(
+        ((loc, param): Ast.Type.ParameterDeclaration.TypeParam.t(Loc.t)) => {
+          let (_, name) = param.name;
+          if (! CasingUtils.isFirstLetterLowercase(name)) {
+            raise(TypeUtils.TypeVarsMustBeLowercase(name, loc));
+          };
+
+          name;
+        },
+        tParams,
+      );
+
+    List.iter(
+      paramName =>
+        DynamicScope.push(DynamicScope.TypeVariable(paramName), scope),
+      typeParamNames,
+    );
+
+    let (_classLoc, classType) = c.body;
+
+    DynamicScope.push(
+      DynamicScope.ClassDef({
+        name: className,
+        typeParamCount: List.length(typeParamNames),
+        make: binding =>
+          AstUtils.makeModule(
+            className,
+            [
+              TypeUtils.makeInterfaceDeclaration(
+                ~scope,
+                ~typeParamNames,
+                ~interfaceName=className,
+                ~interfaceType=classType,
+              ),
+              TypeUtils.makeConstructor(
+                ~scope,
+                ~bindingName=binding,
+                ~interfaceName=className,
+                ~interfaceType=classType,
+              ),
+              ...TypeUtils.makeMethods(
+                   ~scope,
+                   ~interfaceName=className,
+                   ~interfaceType=classType,
+                 ),
+            ],
+          ),
+      }),
+      scope,
+    );
+
+    [];
 
   | _ => []
   };
