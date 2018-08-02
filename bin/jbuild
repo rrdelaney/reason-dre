@@ -16,4 +16,5 @@
  ((name DreJS_command)
   (modules DreJS_command)
   (public_name DreJS_command)
+  (js_of_ocaml ((flags (--custom-header "#!/usr/bin/env node"))))
   (libraries (js_of_ocaml lib))))
