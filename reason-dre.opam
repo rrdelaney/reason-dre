@@ -1,0 +1,14 @@
+opam-version: "1.2"
+authors: "Ryan Delaney <rrdelaney@outlook.com>"
+maintainer: "Ryan Delaney <rrdelaney@outlook.com>"
+dev-repo: "https://github.com/rrdelaney/reason-dre.git"
+homepage: "https://github.com/rrdelaney/reason-dre"
+bug-reports: "https://github.com/rrdelaney/reason-dre/issues"
+build: ["jbuilder" "build" "-p" name]
+depends: [
+  "ocamlfind" {build}
+  "jbuilder" {build}
+  "reason" {>= "3.0.0"}
+  "js_of_ocaml" {>= "3.2.0"}
+  "flow-parser"
+]
