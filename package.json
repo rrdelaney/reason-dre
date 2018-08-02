@@ -7,6 +7,6 @@
   "bin": "_build/default/bin/DreJS_command.bc.js",
   "files": [
     "_build/default/bin/DreJS_api.bc.js",
-    "_build/default/bin/DreJS_command.bc.js",
+    "_build/default/bin/DreJS_command.bc.js"
   ]
 }
