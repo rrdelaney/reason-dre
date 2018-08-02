@@ -222,6 +222,12 @@ let withBufferedError = fn =>
         ++ string_of_int(applied),
     );
 
+  | TypeUtils.ObjectFieldNotSupported(loc) =>
+    bufferErrMsg();
+    bufferErrorLoc(
+      ~loc,
+      ~msg="This type of object field isn't supported yet",
+    );
+
   | DreParser.ModuleNameMustBeStringLiteral(loc) => ()
-  | TypeUtils.ObjectFieldNotSupported(loc) => ()
   };
