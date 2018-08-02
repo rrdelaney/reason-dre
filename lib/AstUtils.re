@@ -139,6 +139,21 @@ let makeExtern =
   pstr_loc: loc,
 };
 
+let makeIdentityExtern = (~externName, ~externType) : Parsetree.structure_item => {
+  pstr_desc:
+    Parsetree.Pstr_primitive({
+      pval_name: {
+        txt: externName,
+        loc,
+      },
+      pval_type: externType,
+      pval_prim: ["%identity"],
+      pval_attributes: [],
+      pval_loc: loc,
+    }),
+  pstr_loc: loc,
+};
+
 let makeNewExtern =
     (~moduleName, ~localName, ~externName, ~externType)
     : Parsetree.structure_item => {

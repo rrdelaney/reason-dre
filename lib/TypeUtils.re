@@ -150,11 +150,12 @@ let rec convertType =
 
   | Array(t) => AstUtils.makeAppliedType("array", [convertType(~scope, t)])
 
+  | Mixed => AstUtils.makeNamedType("Js.Json.t")
+
   | Typeof(tt) => raise(TypeNotSupported(loc))
   | Interface(tt) => raise(TypeNotSupported(loc))
   | Empty => raise(TypeNotSupported(loc))
   | Any => raise(TypeNotSupported(loc))
-  | Mixed => raise(TypeNotSupported(loc))
   | Null => raise(TypeNotSupported(loc))
   | Nullable(tt) => raise(TypeNotSupported(loc))
   | Union(a, b, c) => raise(TypeNotSupported(loc))
@@ -274,8 +275,21 @@ let makeMethods =
                ~methodType=propType,
              );
            }
+
+         | Indexer((loc, t)) => {
+             let converterType =
+               AstUtils.makeFunctionType(
+                 [AstUtils.makeNamedType("t")],
+                 convertType(~scope, t.value),
+               );
+
+             AstUtils.makeIdentityExtern(
+               ~externName="asDict",
+               ~externType=converterType,
+             );
+           }
+
          | SpreadProperty((loc, _))
-         | Indexer((loc, _))
          | CallProperty((loc, _))
          | InternalSlot((loc, _)) => raise(ObjectFieldNotSupported(loc)),
        )
@@ -298,8 +312,8 @@ let makeInterfaceDeclaration =
         |> List.filter(
              fun
              | Property((loc, {_method})) => ! _method
+             | Indexer((loc, _)) => false
              | SpreadProperty((loc, _))
-             | Indexer((loc, _))
              | CallProperty((loc, _))
              | InternalSlot((loc, _)) => true,
            )
@@ -337,8 +351,9 @@ let makeInterfaceDeclaration =
 
                  (propName, propType);
                }
-             | SpreadProperty((loc, _))
+
              | Indexer((loc, _))
+             | SpreadProperty((loc, _))
              | CallProperty((loc, _))
              | InternalSlot((loc, _)) =>
                raise(ObjectFieldNotSupported(loc)),
