@@ -1,6 +1,19 @@
 (jbuild_version 1)
 
 (executable
- ((name Dre)
-  (public_name Dre)
+ ((name Dre_command)
+  (public_name Dre_command)
+  (modules Dre_command)
   (libraries (lib))))
+
+(executable
+ ((name DreJS_api)
+  (public_name DreJS_api)
+  (modules DreJS_api)
+  (libraries (js_of_ocaml lib))))
+
+(executable
+ ((name DreJS_command)
+  (modules DreJS_command)
+  (public_name DreJS_command)
+  (libraries (js_of_ocaml lib))))
