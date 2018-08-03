@@ -10,14 +10,26 @@ exception TypeofMustBeOfClass(Loc.t);
 
 let loc = AstUtils.loc;
 
+let rec extractNameFromGenericId = id =>
+  switch (id) {
+  | Ast.Type.Generic.Identifier.Unqualified((_, name)) => name
+  | Ast.Type.Generic.Identifier.Qualified((
+      loc,
+      {qualification, id: (_, name)},
+    )) =>
+    extractNameFromGenericId(qualification) ++ "." ++ name
+  };
+
 let rec convertType =
         (~scope, (loc, t): Ast.Type.t(Loc.t))
         : Parsetree.core_type =>
   switch (t) {
+  | Number when DreConfig.strictTypes => raise(TypeNotInScope("number", loc))
   | Number => AstUtils.makeNamedType("float")
+  | Void when DreConfig.strictTypes => raise(TypeNotInScope("void", loc))
+  | Void => AstUtils.makeNamedType("unit")
   | String => AstUtils.makeNamedType("string")
   | Boolean => AstUtils.makeNamedType("boolean")
-  | Void => AstUtils.makeNamedType("unit")
 
   | Ast.Type.Function(f) =>
     let (_loc, paramTypes) = f.params;
@@ -96,12 +108,7 @@ let rec convertType =
     AstUtils.makeObjectType(objProps);
 
   | Generic(tt) =>
-    let (loc, name) =
-      switch (tt.id) {
-      | Ast.Type.Generic.Identifier.Unqualified(id) => id
-      | Ast.Type.Generic.Identifier.Qualified((loc, _)) =>
-        raise(TypeNotSupported(loc))
-      };
+    let name = extractNameFromGenericId(tt.id);
 
     let typeArgsLoc =
       switch (tt.targs) {

@@ -39,7 +39,7 @@ module Make = (IO: IO) => {
           ErrorUtils.withBufferedError(() =>
             compileFile(~stdout=args.stdout, f)
           );
-          ErrorUtils.MsgBuf.flush() |> print_string;
+          ErrorUtils.MsgBuf.flush() |> print_endline;
         },
         args.files,
       );

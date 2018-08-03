@@ -1,8 +1,20 @@
 let types = {
   open DynamicScope;
 
-  let promise = {dreName: "JsPromise", reasonName: "Js.Promise.t"};
-  let dict = {dreName: "JsDict", reasonName: "Js.Dict.t"};
+  let ts = ref([]);
+  let push = t => ts := [t, ...ts^];
 
-  [promise, dict];
+  /* These types are all in Reason, but not JS. */
+  push({dreName: "Js.Promise", reasonName: "Js.Promise.t"});
+  push({dreName: "Js.Dict", reasonName: "Js.Dict.t"});
+  push({dreName: "int", reasonName: "int"});
+  push({dreName: "float", reasonName: "float"});
+  push({dreName: "unit", reasonName: "unit"});
+
+  /* Some compatability types that are parsed for newcomers. */
+  if (! DreConfig.strictTypes) {
+    push({dreName: "Promise", reasonName: "Js.Promise.t"});
+  };
+
+  ts^;
 };
