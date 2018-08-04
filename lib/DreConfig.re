@@ -2,4 +2,4 @@
 let checkTypesInScope = true;
 
 /** Enables compile errors when seeing a JS type, like number. */
-let strictTypes = true;
+let strictTypes = false;

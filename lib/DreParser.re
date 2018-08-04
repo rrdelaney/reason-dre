@@ -7,6 +7,7 @@ exception VarMustHaveType(Loc.t);
 exception TypeAliasNameMustBeLowercase(string, Loc.t);
 exception InterfaceNameMustBeUppercase(string, Loc.t);
 exception ClassNameMustBeUppercase(string, Loc.t);
+exception ModuleExportsMustBeInModule(Loc.t);
 
 type file = {
   source: string,
@@ -234,6 +235,25 @@ and handleDeclareClass = (~scope: DynamicScope.scope, ~loc, c) => {
 
   [];
 }
+and handleDeclareModuleExports =
+    (~scope: DynamicScope.scope, ~loc, (tloc, t)) => {
+  let externName =
+    switch (scope.moduleName) {
+    | Some(name) => name
+    | None => raise(ModuleExportsMustBeInModule(loc))
+    };
+
+  let externType = TypeUtils.convertType(~scope, t);
+
+  [
+    AstUtils.makeExtern(
+      ~moduleName=scope.moduleName,
+      ~defaultExport=true,
+      ~externName,
+      ~externType,
+    ),
+  ];
+}
 and handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
   switch (statement) {
   | Ast.Statement.DeclareModule(m) => handleDeclareModule(~scope, ~loc, m)
@@ -244,6 +264,8 @@ and handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
   | Ast.Statement.DeclareInterface(i) =>
     handleDeclareInterface(~scope, ~loc, i)
   | Ast.Statement.DeclareClass(c) => handleDeclareClass(~scope, ~loc, c)
+  | Ast.Statement.DeclareModuleExports(m) =>
+    handleDeclareModuleExports(~scope, ~loc, m)
   | _ => []
   };
 

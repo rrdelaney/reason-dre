@@ -126,7 +126,12 @@ let makeExtern =
         loc,
       },
       pval_type: externType,
-      pval_prim: [externName],
+      pval_prim: [
+        switch (defaultExport, moduleName) {
+        | (true, Some(name)) => name
+        | _ => externName
+        },
+      ],
       pval_attributes: [
         switch (moduleName) {
         | Some(name) =>

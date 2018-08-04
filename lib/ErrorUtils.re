@@ -231,5 +231,13 @@ let withBufferedError = fn =>
       ~msg="This type of object field isn't supported yet",
     );
 
+  | DreParser.ModuleExportsMustBeInModule(loc) =>
+    bufferErrMsg();
+    bufferErrorLoc(
+      ~loc,
+      ~msg="module.exports can only be declared inside of a module!",
+    );
+    bufferHint(~msg="Did you mean to wrap this in a \"declare module\"?");
+
   | DreParser.ModuleNameMustBeStringLiteral(loc) => ()
   };
