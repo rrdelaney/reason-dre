@@ -8,12 +8,24 @@ let isFirstLetterLowercase = s =>
 
 let makeVariableName = s => {
   let buf = ref("");
+  let append = c => buf := String.concat("", [buf^, Char.escaped(c)]);
 
-  String.iteri((i, ch) => {
-    let prevChar =
-      try (s.[i - 1]) {
-      | Invalid_argument(_) => '0'
+  String.iteri(
+    (i, ch) => {
+      let prevChar =
+        try (s.[i - 1]) {
+        | Invalid_argument(_) => '0'
+        };
+
+      switch (prevChar, ch) {
+      | ('-', c) => append(Char.uppercase_ascii(c))
+      | ('0', c) => append(Char.lowercase_ascii(c))
+      | (_, '-') => ()
+      | (_, c) => append(c)
       };
-    ();
-  });
+    },
+    s,
+  );
+
+  buf^;
 };

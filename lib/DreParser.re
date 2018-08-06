@@ -239,7 +239,7 @@ and handleDeclareModuleExports =
     (~scope: DynamicScope.scope, ~loc, (tloc, t)) => {
   let externName =
     switch (scope.moduleName) {
-    | Some(name) => name
+    | Some(name) => CasingUtils.makeVariableName(name)
     | None => raise(ModuleExportsMustBeInModule(loc))
     };
 
