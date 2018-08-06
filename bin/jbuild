@@ -8,13 +8,11 @@
 
 (executable
  ((name DreJS_api)
-  (public_name DreJS_api)
   (modules DreJS_api)
   (libraries (js_of_ocaml lib))))
 
 (executable
  ((name DreJS_command)
   (modules DreJS_command)
-  (public_name DreJS_command)
   (js_of_ocaml ((flags (--custom-header "#!/usr/bin/env node"))))
   (libraries (js_of_ocaml lib))))
