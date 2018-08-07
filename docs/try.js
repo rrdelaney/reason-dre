@@ -52,8 +52,8 @@ inputEditor.on('change', () => {
   }
 
   if (compiledOutput && inputEditorVal !== exampleCode) {
-    const encodedOutput = LZString.compressToEncodedURIComponent(compiledOutput)
-    const nextURL = new URL(`?code=${encodedOutput}`, location)
+    const encodedInput = LZString.compressToEncodedURIComponent(inputEditorVal)
+    const nextURL = new URL(`?code=${encodedInput}`, location)
     history.replaceState({}, document.title, nextURL.toString())
   }
 })
