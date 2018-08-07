@@ -106,7 +106,7 @@ let rec convertType =
           fun
           | Property((loc, prop)) => {
               open Ast.Type.Object.Property;
-              let {key, value} = prop;
+              let {key, value, optional} = prop;
 
               let propName =
                 switch (key) {
@@ -124,7 +124,14 @@ let rec convertType =
                 | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
                 };
 
-              (propName, propType);
+              let propWithNullable =
+                if (optional) {
+                  AstUtils.makeAppliedType("Js.nullable", [propType]);
+                } else {
+                  propType;
+                };
+
+              (propName, propWithNullable);
             }
 
           | SpreadProperty((loc, _))
@@ -189,12 +196,14 @@ let rec convertType =
 
   | Mixed => AstUtils.makeNamedType("Js.Json.t")
 
+  | Nullable(t) =>
+    AstUtils.makeAppliedType("Js.nullable", [convertType(~scope, t)])
+
   | Typeof(tt) => raise(TypeNotSupported(loc))
   | Interface(tt) => raise(TypeNotSupported(loc))
   | Empty => raise(TypeNotSupported(loc))
   | Any => raise(TypeNotSupported(loc))
   | Null => raise(TypeNotSupported(loc))
-  | Nullable(tt) => raise(TypeNotSupported(loc))
   | Union(a, b, c) => raise(TypeNotSupported(loc))
   | Intersection(a, b, c) => raise(TypeNotSupported(loc))
   | Tuple(tt) => raise(TypeNotSupported(loc))
