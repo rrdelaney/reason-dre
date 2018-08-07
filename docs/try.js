@@ -1,3 +1,14 @@
+const exampleCode = `
+declare module "fetch" {
+  declare interface FetchOptions {
+    mode: string;
+    body: string;
+  }
+
+  declare function fetch(url: string, options: FetchOptions): string;
+}
+`.trim()
+
 CodeMirror.registerHelper('lint', 'javascript', text => {
   const [compiledOutput, errMsg] = compile('try.dre', text)
 
@@ -39,17 +50,22 @@ inputEditor.on('change', () => {
   if (compiledOutput) {
     outputEditor.setValue(compiledOutput)
   }
+
+  if (compiledOutput && inputEditorVal !== exampleCode) {
+    const encodedOutput = LZString.compressToEncodedURIComponent(compiledOutput)
+    const nextURL = new URL(`?code=${encodedOutput}`, location)
+    history.replaceState({}, document.title, nextURL.toString())
+  }
 })
 
-const exampleDre = `
-declare module "fetch" {
-  declare interface FetchOptions {
-    mode: string;
-    body: string;
-  }
+const params = new URLSearchParams(location.search)
+const encodedInitialValue = params.get('code')
 
-  declare function fetch(url: string, options: FetchOptions): string;
+let code
+if (encodedInitialValue) {
+  code = LZString.decompressFromEncodedURIComponent(encodedInitialValue)
+} else {
+  code = exampleCode
 }
-`.trim()
 
-inputEditor.setValue(exampleDre)
+const exampleDre = inputEditor.setValue(code)
