@@ -10,6 +10,7 @@ let types = {
   push({dreName: "int", reasonName: "int"});
   push({dreName: "float", reasonName: "float"});
   push({dreName: "unit", reasonName: "unit"});
+  push({dreName: "bool", reasonName: "bool"});
 
   /* Some compatability types that are parsed for newcomers. */
   if (! DreConfig.strictTypes) {

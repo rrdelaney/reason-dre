@@ -28,8 +28,10 @@ let rec convertType =
   | Number => AstUtils.makeNamedType("float")
   | Void when DreConfig.strictTypes => raise(TypeNotInScope("void", loc))
   | Void => AstUtils.makeNamedType("unit")
+  | Boolean when DreConfig.strictTypes =>
+    raise(TypeNotInScope("boolean", loc))
+  | Boolean => AstUtils.makeNamedType("bool")
   | String => AstUtils.makeNamedType("string")
-  | Boolean => AstUtils.makeNamedType("boolean")
 
   | Ast.Type.Function(f) =>
     let (_loc, paramTypes) = f.params;
@@ -56,15 +58,43 @@ let rec convertType =
 
     let concreteParamTypes =
       List.map(
-        ((loc, param)) => Ast.Type.Function.Param.(param.annot),
+        ((loc, param): Ast.Type.Function.Param.t(Loc.t)) => {
+          let paramType = convertType(~scope=functionScope, param.annot);
+          let optionalLabel =
+            switch (param.optional, param.name) {
+            | (true, Some((loc, name))) => Some(name)
+            | _ => None
+            };
+          (optionalLabel, paramType);
+        },
         concreteParams,
       );
 
+    let hasOptional =
+      List.exists(
+        ((label, _)) =>
+          switch (label) {
+          | Some(_) => true
+          | None => false
+          },
+        concreteParamTypes,
+      );
+
+    let concreteParamTypes =
+      if (hasOptional) {
+        List.concat([
+          concreteParamTypes,
+          [(None, AstUtils.makeNamedType("unit"))],
+        ]);
+      } else {
+        concreteParamTypes;
+      };
+
     AstUtils.makeFunctionType(
       if (List.length(concreteParamTypes) > 0) {
-        List.map(convertType(~scope=functionScope), concreteParamTypes);
+        concreteParamTypes;
       } else {
-        [AstUtils.makeNamedType("unit")];
+        [(None, AstUtils.makeNamedType("unit"))];
       },
       convertType(~scope=functionScope, (retLoc, returnType)),
     );
@@ -286,7 +316,7 @@ let makeMethods =
          | Indexer((loc, t)) => {
              let converterType =
                AstUtils.makeFunctionType(
-                 [AstUtils.makeNamedType("t")],
+                 [(None, AstUtils.makeNamedType("t"))],
                  convertType(~scope, t.value),
                );
 
@@ -328,7 +358,7 @@ let makeInterfaceDeclaration =
              fun
              | Property((loc, prop)) => {
                  open Ast.Type.Object.Property;
-                 let {key, value} = prop;
+                 let {key, value, optional} = prop;
 
                  let propName =
                    switch (key) {
@@ -356,7 +386,7 @@ let makeInterfaceDeclaration =
                    | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
                    };
 
-                 (propName, propType);
+                 (propName, optional, propType);
                }
 
              | Indexer((loc, _))

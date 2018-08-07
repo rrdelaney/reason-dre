@@ -204,6 +204,7 @@ let withBufferedError = fn =>
     switch (typeName) {
     | "number" => bufferHint(~msg="Did you mean \"float\"?")
     | "void" => bufferHint(~msg="Did you mean \"unit\"?")
+    | "boolean" => bufferHint(~msg="Did you mean \"bool\"?")
     | "Promise" => bufferHint(~msg="Did you mean \"Js.Promise\"?")
     | _ => ()
     };

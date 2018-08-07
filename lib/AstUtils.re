@@ -22,11 +22,20 @@ let makeAppliedType = (typeName, args) : Parsetree.core_type => {
   ptyp_attributes: [],
 };
 
+/** Takes a list of tuples: (label if optional, type) */
 let makeFunctionType = (params, returnType) =>
   List.fold_right(
-    (paramType, t) =>
+    ((name, paramType), t) =>
       Parsetree.{
-        ptyp_desc: Parsetree.Ptyp_arrow(Asttypes.Nolabel, paramType, t),
+        ptyp_desc:
+          Parsetree.Ptyp_arrow(
+            switch (name) {
+            | Some(name) => Asttypes.Optional(name)
+            | None => Asttypes.Nolabel
+            },
+            paramType,
+            t,
+          ),
         ptyp_loc: loc,
         ptyp_attributes: [],
       },
@@ -113,6 +122,11 @@ let makeBsValAttribute = () : Parsetree.attribute => (
 
 let makeBsNewAttribute = () : Parsetree.attribute => (
   {txt: "bs.new", loc},
+  Parsetree.PStr([]),
+);
+
+let makeBsOptionalAttribute = () : Parsetree.attribute => (
+  {txt: "bs.optional", loc},
   Parsetree.PStr([]),
 );
 
@@ -208,6 +222,7 @@ let makeMethodExtern = (~methodName, ~methodType) : Parsetree.structure_item => 
   pstr_loc: loc,
 };
 
+/** Takes a list of tuples: (name, optional, type) */
 let makeInterfaceDeclaration =
     (~name, ~typeParamNames, ~fields)
     : Parsetree.structure_item => {
@@ -229,7 +244,7 @@ let makeInterfaceDeclaration =
           ptype_kind:
             Parsetree.Ptype_record(
               List.map(
-                ((fieldName, fieldType)) =>
+                ((fieldName, isOptional, fieldType)) =>
                   Parsetree.{
                     pld_name: {
                       txt: fieldName,
@@ -238,7 +253,12 @@ let makeInterfaceDeclaration =
                     pld_mutable: Asttypes.Immutable,
                     pld_type: fieldType,
                     pld_loc: loc,
-                    pld_attributes: [],
+                    pld_attributes:
+                      if (isOptional) {
+                        [makeBsOptionalAttribute()];
+                      } else {
+                        [];
+                      },
                   },
                 fields,
               ),
