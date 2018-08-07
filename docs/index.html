@@ -59,13 +59,13 @@
     <main id="docs">
       <nav>
         <a href="#what-and-why" class="link">What &amp; Why</a>
+        <a href="#introduction" class="link">Introduction</a>
+        <a href="#dre-files" class="sublink">Dre Files</a>
         <a href="#getting-started" class="link">Getting Started</a>
         <a href="#installation" class="sublink">Installation</a>
         <a href="#build-system-integration" class="sublink">Build System Integration</a>
-        <a href="#introduction" class="link">Introduction</a>
-        <a href="#dre-files" class="sublink">DRE Files</a>
-        <a href="#bindings" class="link">Writing Bindings</a>
-        <a href="#bindings-variable" class="sublink">Binding to a variable</a>
+        <a href="#types" class="link">Binding to JavaScript types</a>
+        <a href="#basic-types" class="sublink">Basic Types</a>
       </nav>
       <section>
         <h1 id="what-and-why">What &amp; Why</h1>
@@ -86,16 +86,69 @@
           But those type systems have a ton of types written for them (especially TypeScript) because they're
           stright-forward to write for a lot of the JS community.
         </p>
+        <p>
+          Dre is a new approach to giving Reason developers easy access to writing bindings like they do in
+          other ecosystems. Dre reuses Flow's syntax to provide an approachable interface that looks like JavaScript,
+          but under the hood uses Reason's type system instead of Flow's. The JS syntax that Dre uses is compiled
+          to idiomatic Reason bindings for the JS structures declared in a Dre file.
+        </p>
+        <h1 id="introduction">Introduction</h1>
+        <h2 id="dre-files">Dre files</h2>
+        <p>
+          All Dre code in written in files ending in <code>.dre</code>. These "dre" files are then compiled to Reason
+          using the <code>reason-dre</code> command-line compiler.
+        </p>
         <h1 id="getting-started">Getting Started</h1>
         <h2 id="installation">Installation</h2>
         <p>
-          Installing the CLI is easy, just run <code>npm install reason-dre</code>.
+          Installing the CLI is easy. To install with npm, run <code>npm install -g reason-dre</code>.
+          Note that a global compiler is recommended, to sit next to BSB, BuckleScript's build system.
         </p>
         <h2 id="build-system-integration">BSB Integration</h2>
         <p>
+          BSB has hooks called "generators" that can be used to automatically compile Dre Files
+          to Reason code. The Dre CLI works really well with this integration, and in the future will support
+          automatically generating this part of your BuckleScript configuration for you.
         </p>
-        <h1 id="bindings">Writing Bindings</h1>
-        <h2 id="bindings-variable">Binding to a variable</h2>
+        <p>
+          First, register Dre with BuckleScript:
+          <code class="block">
+<!--     -->// bsconfig.json
+<!--     -->{
+<!--     -->  "name": "my-project",
+<!--     -->  "generators": [{
+<!--     -->    "name": "dre",
+<!--     -->    "command": "reason-dre $in"
+<!--     -->  }]
+<!--     -->}
+          </code>
+          This should set up Dre for being used as a generator for Reason files in BuckleScript!. The
+          next step is to set up individual files for compilation with Dre:
+          <code class="block">
+<!--     -->// bsconfig.json
+<!--     -->{
+<!--     -->  "name": "my-project",
+<!--     -->  "generators": ...
+<!--     -->  "sources": [
+<!--     -->    {
+<!--     -->      "dir": "bindings",
+<!--     -->      "generators": [
+<!--     -->        {
+<!--     -->          "name": "dre",
+<!--     -->          "edge": ["MyBinding.dre", ":", "MyBinding.re"]
+<!--     -->        }
+<!--     -->      ]
+<!--     -->    }
+<!--     -->  ]
+<!--     -->}
+          </code>
+          Note that you need to create a new entry in generators for <strong>every</strong> Dre file
+          you create, and if you create a Dre file outside of the <code>bindings</code> directory we
+          just set up, you need to register generators in that directory too. For this reason we recommend
+          keeping all Dre files in your project in a directory named <code>bindings</code>.
+        </p>
+        <h1 id="types">Binding to JavaScript types</h1>
+        <h2 id="basic-types">Basic Types</h2>
         <p>
           Binding to a variable is like:
           <code class="block">
