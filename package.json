@@ -1,6 +1,6 @@
 {
   "name": "reason-dre",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Declarative Reason bindings",
   "license": "MIT",
   "main": "_build/default/bin/DreJS_api.bc.js",
@@ -8,5 +8,8 @@
   "files": [
     "_build/default/bin/DreJS_api.bc.js",
     "_build/default/bin/DreJS_command.bc.js"
-  ]
+  ],
+  "scripts": {
+    "build": "esy jbuilder build bin/DreJS_api.bc.js && esy jbuilder build bin/DreJS_command.bc.js"
+  }
 }
