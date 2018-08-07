@@ -5,6 +5,7 @@ exception ParseError(list((Loc.t, Parser_common.Error.t)));
 exception ModuleNameMustBeStringLiteral(Loc.t);
 exception VarMustHaveType(Loc.t);
 exception TypeAliasNameMustBeLowercase(string, Loc.t);
+exception TypeNameNameMustBeLowercase(string, Loc.t);
 exception InterfaceNameMustBeUppercase(string, Loc.t);
 exception ClassNameMustBeUppercase(string, Loc.t);
 exception ModuleExportsMustBeInModule(Loc.t);
@@ -254,6 +255,21 @@ and handleDeclareModuleExports =
     ),
   ];
 }
+and handleDeclareOpaqueType =
+    (~scope, ~loc, t: Ast.Statement.OpaqueType.t(Loc.t)) => {
+  let (loc, typeName) = t.id;
+
+  if (! CasingUtils.isFirstLetterLowercase(typeName)) {
+    raise(TypeNameNameMustBeLowercase(typeName, loc));
+  };
+
+  DynamicScope.push(
+    DynamicScope.TypeAlias({name: typeName, typeParamCount: 0}),
+    scope,
+  );
+
+  [AstUtils.makeBareType(~typeName)];
+}
 and handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
   switch (statement) {
   | Ast.Statement.DeclareModule(m) => handleDeclareModule(~scope, ~loc, m)
@@ -266,6 +282,8 @@ and handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
   | Ast.Statement.DeclareClass(c) => handleDeclareClass(~scope, ~loc, c)
   | Ast.Statement.DeclareModuleExports(m) =>
     handleDeclareModuleExports(~scope, ~loc, m)
+  | Ast.Statement.DeclareOpaqueType(t) =>
+    handleDeclareOpaqueType(~scope, ~loc, t)
   | _ => []
   };
 

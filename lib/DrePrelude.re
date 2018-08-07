@@ -11,6 +11,7 @@ let types = {
   push({dreName: "float", reasonName: "float"});
   push({dreName: "unit", reasonName: "unit"});
   push({dreName: "bool", reasonName: "bool"});
+  push({dreName: "Dom.element", reasonName: "Dom.element"});
 
   /* Some compatability types that are parsed for newcomers. */
   if (! DreConfig.strictTypes) {

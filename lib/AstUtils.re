@@ -242,30 +242,62 @@ let makeInterfaceDeclaration =
             ),
           ptype_cstrs: [],
           ptype_kind:
-            Parsetree.Ptype_record(
-              List.map(
-                ((fieldName, isOptional, fieldType)) =>
-                  Parsetree.{
-                    pld_name: {
-                      txt: fieldName,
-                      loc,
-                    },
-                    pld_mutable: Asttypes.Immutable,
-                    pld_type: fieldType,
-                    pld_loc: loc,
-                    pld_attributes:
-                      if (isOptional) {
-                        [makeBsOptionalAttribute()];
-                      } else {
-                        [];
+            if (List.length(fields) != 0) {
+              Parsetree.Ptype_record(
+                List.map(
+                  ((fieldName, isOptional, fieldType)) =>
+                    Parsetree.{
+                      pld_name: {
+                        txt: fieldName,
+                        loc,
                       },
-                  },
-                fields,
-              ),
-            ),
+                      pld_mutable: Asttypes.Immutable,
+                      pld_type: fieldType,
+                      pld_loc: loc,
+                      pld_attributes:
+                        if (isOptional) {
+                          [makeBsOptionalAttribute()];
+                        } else {
+                          [];
+                        },
+                    },
+                  fields,
+                ),
+              );
+            } else {
+              Parsetree.Ptype_abstract;
+            },
           ptype_private: Asttypes.Public,
           ptype_manifest: None,
-          ptype_attributes: [makeBsDerivingAttribute()],
+          ptype_attributes:
+            if (List.length(fields) != 0) {
+              [makeBsDerivingAttribute()];
+            } else {
+              [];
+            },
+          ptype_loc: loc,
+        },
+      ],
+    ),
+  pstr_loc: loc,
+};
+
+let makeBareType = (~typeName) : Parsetree.structure_item => {
+  pstr_desc:
+    Parsetree.Pstr_type(
+      Asttypes.Recursive,
+      [
+        {
+          ptype_name: {
+            txt: typeName,
+            loc,
+          },
+          ptype_params: [],
+          ptype_cstrs: [],
+          ptype_kind: Parsetree.Ptype_abstract,
+          ptype_private: Asttypes.Public,
+          ptype_manifest: None,
+          ptype_attributes: [],
           ptype_loc: loc,
         },
       ],
