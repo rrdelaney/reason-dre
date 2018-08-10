@@ -104,15 +104,15 @@ let moduleName = scope =>
 
 let namespaces = scope => {
   let namespaces =
-    List.fold_right(
-      (module_, namespaces) =>
+    List.fold_left(
+      (namespaces, module_) =>
         switch (module_) {
         | Namespace(name) => [name, ...namespaces]
         | NodeModule(_)
         | Declaration(_) => namespaces
         },
-      scope.modules,
       [],
+      scope.modules,
     );
 
   if (List.length(namespaces) > 0) {

@@ -178,14 +178,17 @@ let makeExtern =
         | _ => externName
         },
       ],
-      pval_attributes: [
+      pval_attributes:
         switch (moduleName, namespaces) {
-        | (Some(name), _) =>
-          makeBsModuleAttibute(~moduleName=name, ~defaultExport)
-        | (_, Some(names)) => makeBsScopeAttribute(~namespaces=names)
-        | (None, None) => makeBsValAttribute()
+        | (Some(name), _) => [
+            makeBsModuleAttibute(~moduleName=name, ~defaultExport),
+          ]
+        | (_, Some(names)) => [
+            makeBsScopeAttribute(~namespaces=names),
+            makeBsValAttribute(),
+          ]
+        | (None, None) => [makeBsValAttribute()]
         },
-      ],
       pval_loc: loc,
     }),
   pstr_loc: loc,
@@ -217,15 +220,19 @@ let makeNewExtern =
       },
       pval_type: externType,
       pval_prim: [externName],
-      pval_attributes: [
+      pval_attributes:
         switch (moduleName, namespaces) {
-        | (Some(name), _) =>
-          makeBsModuleAttibute(~moduleName=name, ~defaultExport=false)
-        | (_, Some(names)) => makeBsScopeAttribute(~namespaces=names)
-        | (None, None) => makeBsValAttribute()
+        | (Some(name), _) => [
+            makeBsModuleAttibute(~moduleName=name, ~defaultExport=false),
+            makeBsNewAttribute(),
+          ]
+        | (_, Some(names)) => [
+            makeBsScopeAttribute(~namespaces=names),
+            makeBsValAttribute(),
+            makeBsNewAttribute(),
+          ]
+        | (None, None) => [makeBsValAttribute(), makeBsNewAttribute()]
         },
-        makeBsNewAttribute(),
-      ],
       pval_loc: loc,
     }),
   pstr_loc: loc,
