@@ -252,7 +252,8 @@ let makeConstructor =
                };
 
              AstUtils.makeNewExtern(
-               ~moduleName=scope.moduleName,
+               ~moduleName=DynamicScope.moduleName(scope),
+               ~namespaces=DynamicScope.namespaces(scope),
                ~localName="make",
                ~externName=bindingName,
                ~externType=propType,

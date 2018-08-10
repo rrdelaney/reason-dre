@@ -91,6 +91,38 @@ let makeBsModuleAttibute = (~moduleName, ~defaultExport) : Parsetree.attribute =
   },
 );
 
+let makeBsScopeAttribute = (~namespaces) : Parsetree.attribute => (
+  {txt: "bs.scope", loc},
+  Parsetree.PStr([
+    {
+      pstr_desc:
+        Parsetree.Pstr_eval(
+          {
+            pexp_desc:
+              Parsetree.Pexp_tuple(
+                List.map(
+                  namespace =>
+                    Parsetree.{
+                      pexp_desc:
+                        Parsetree.Pexp_constant(
+                          Parsetree.Pconst_string(namespace, None),
+                        ),
+                      pexp_loc: loc,
+                      pexp_attributes: [],
+                    },
+                  namespaces,
+                ),
+              ),
+            pexp_loc: loc,
+            pexp_attributes: [],
+          },
+          [],
+        ),
+      pstr_loc: loc,
+    },
+  ]),
+);
+
 let makeBsDerivingAttribute = () : Parsetree.attribute => (
   {txt: "bs.deriving", loc},
   Parsetree.PStr([
@@ -131,7 +163,7 @@ let makeBsOptionalAttribute = () : Parsetree.attribute => (
 );
 
 let makeExtern =
-    (~moduleName, ~defaultExport, ~externName, ~externType)
+    (~moduleName, ~namespaces, ~defaultExport, ~externName, ~externType)
     : Parsetree.structure_item => {
   pstr_desc:
     Parsetree.Pstr_primitive({
@@ -147,10 +179,11 @@ let makeExtern =
         },
       ],
       pval_attributes: [
-        switch (moduleName) {
-        | Some(name) =>
+        switch (moduleName, namespaces) {
+        | (Some(name), _) =>
           makeBsModuleAttibute(~moduleName=name, ~defaultExport)
-        | None => makeBsValAttribute()
+        | (_, Some(names)) => makeBsScopeAttribute(~namespaces=names)
+        | (None, None) => makeBsValAttribute()
         },
       ],
       pval_loc: loc,
@@ -174,7 +207,7 @@ let makeIdentityExtern = (~externName, ~externType) : Parsetree.structure_item =
 };
 
 let makeNewExtern =
-    (~moduleName, ~localName, ~externName, ~externType)
+    (~moduleName, ~namespaces, ~localName, ~externName, ~externType)
     : Parsetree.structure_item => {
   pstr_desc:
     Parsetree.Pstr_primitive({
@@ -185,10 +218,11 @@ let makeNewExtern =
       pval_type: externType,
       pval_prim: [externName],
       pval_attributes: [
-        switch (moduleName) {
-        | Some(name) =>
+        switch (moduleName, namespaces) {
+        | (Some(name), _) =>
           makeBsModuleAttibute(~moduleName=name, ~defaultExport=false)
-        | None => makeBsValAttribute()
+        | (_, Some(names)) => makeBsScopeAttribute(~namespaces=names)
+        | (None, None) => makeBsValAttribute()
         },
         makeBsNewAttribute(),
       ],

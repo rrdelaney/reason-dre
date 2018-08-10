@@ -69,7 +69,9 @@ h2 {
   font-family: Montserrat;
 }
 
-p {
+p,
+th,
+td {
   font-family: 'Open Sans';
 }
 
@@ -311,6 +313,7 @@ main code {
   padding: 0.5rem;
   opacity: 0.87;
   margin: 0 0.33rem;
+  padding: 0.33rem;
 }
 
 main code.block {
@@ -328,4 +331,9 @@ main h2 {
 
 h1 + h2 {
   margin-top: 0;
+}
+
+table {
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  border-radius: 0.33rem;
 }

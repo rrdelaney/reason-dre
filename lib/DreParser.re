@@ -2,7 +2,6 @@ open Flow_parser;
 open Ast_404;
 
 exception ParseError(list((Loc.t, Parser_common.Error.t)));
-exception ModuleNameMustBeStringLiteral(Loc.t);
 exception VarMustHaveType(Loc.t);
 exception TypeAliasNameMustBeLowercase(string, Loc.t);
 exception TypeNameNameMustBeLowercase(string, Loc.t);
@@ -18,14 +17,13 @@ type file = {
 let rec handleDeclareModule = (~scope: DynamicScope.scope, ~loc, m) => {
   open Ast.Statement.DeclareModule;
 
-  let moduleName =
+  let moduleScope =
     switch (m.id) {
-    | Ast.Statement.DeclareModule.Identifier(_) =>
-      raise(ModuleNameMustBeStringLiteral(loc))
-    | Ast.Statement.DeclareModule.Literal((loc, literal)) => literal.value
+    | Ast.Statement.DeclareModule.Identifier((loc, name)) =>
+      DynamicScope.withNamespace(name, scope)
+    | Ast.Statement.DeclareModule.Literal((loc, literal)) =>
+      DynamicScope.withNodeModule(literal.value, scope)
     };
-
-  let moduleScope = DynamicScope.withModule(moduleName, scope);
 
   let (loc, moduleBody) = m.body;
   let body = moduleBody.body;
@@ -57,7 +55,8 @@ and handleDeclareVariable = (~scope: DynamicScope.scope, ~loc, v) => {
 
   | _ => [
       AstUtils.makeExtern(
-        ~moduleName=scope.moduleName,
+        ~moduleName=DynamicScope.moduleName(scope),
+        ~namespaces=DynamicScope.namespaces(scope),
         ~defaultExport=false,
         ~externName=varName,
         ~externType=TypeUtils.convertType(~scope, varType),
@@ -73,7 +72,8 @@ and handleDeclareFunction = (~scope: DynamicScope.scope, ~loc, f) => {
 
   [
     AstUtils.makeExtern(
-      ~moduleName=scope.moduleName,
+      ~moduleName=DynamicScope.moduleName(scope),
+      ~namespaces=DynamicScope.namespaces(scope),
       ~defaultExport=false,
       ~externName=functionName,
       ~externType=
@@ -239,7 +239,7 @@ and handleDeclareClass = (~scope: DynamicScope.scope, ~loc, c) => {
 and handleDeclareModuleExports =
     (~scope: DynamicScope.scope, ~loc, (tloc, t)) => {
   let externName =
-    switch (scope.moduleName) {
+    switch (DynamicScope.moduleName(scope)) {
     | Some(name) => CasingUtils.makeVariableName(name)
     | None => raise(ModuleExportsMustBeInModule(loc))
     };
@@ -248,7 +248,8 @@ and handleDeclareModuleExports =
 
   [
     AstUtils.makeExtern(
-      ~moduleName=scope.moduleName,
+      ~moduleName=DynamicScope.moduleName(scope),
+      ~namespaces=DynamicScope.namespaces(scope),
       ~defaultExport=true,
       ~externName,
       ~externType,
@@ -270,6 +271,22 @@ and handleDeclareOpaqueType =
 
   [AstUtils.makeBareType(~typeName)];
 }
+and handleWithStatement = (~scope, ~loc, w: Ast.Statement.With.t(Loc.t)) => {
+  let name =
+    switch (w._object) {
+    | (loc, Ast.Expression.Identifier((_, name))) => name
+    | _ => raise(Not_found)
+    };
+
+  let namespaceScope = DynamicScope.withNamespace(name, scope);
+
+  let body =
+    switch (w.body) {
+    | (loc, Ast.Statement.Block(b)) => b.body
+    | _ => raise(Not_found)
+    };
+  body |> List.map(handleStatement(~scope=namespaceScope)) |> List.flatten;
+}
 and handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
   switch (statement) {
   | Ast.Statement.DeclareModule(m) => handleDeclareModule(~scope, ~loc, m)
@@ -284,6 +301,7 @@ and handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
     handleDeclareModuleExports(~scope, ~loc, m)
   | Ast.Statement.DeclareOpaqueType(t) =>
     handleDeclareOpaqueType(~scope, ~loc, t)
+  | Ast.Statement.With(w) => handleWithStatement(~scope, ~loc, w)
   | _ => []
   };
 
