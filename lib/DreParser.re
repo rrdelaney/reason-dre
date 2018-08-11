@@ -27,7 +27,10 @@ let rec handleDeclareModule = (~scope: DynamicScope.scope, ~loc, m) => {
 
   let (loc, moduleBody) = m.body;
   let body = moduleBody.body;
-  body |> List.map(handleStatement(~scope=moduleScope)) |> List.flatten;
+
+  body
+  |> MutableIterator.map(handleStatement(~scope=moduleScope))
+  |> List.flatten;
 }
 and handleDeclareVariable = (~scope: DynamicScope.scope, ~loc, v) => {
   open Ast.Statement.DeclareVariable;
@@ -64,11 +67,46 @@ and handleDeclareVariable = (~scope: DynamicScope.scope, ~loc, v) => {
     ]
   };
 }
-and handleDeclareFunction = (~scope: DynamicScope.scope, ~loc, f) => {
+and handleDeclareFunction =
+    (
+      ~iter: MutableIterator.iter(Ast.Statement.t(Loc.t)),
+      ~scope: DynamicScope.scope,
+      ~loc,
+      f,
+    ) => {
   open Ast.Statement.DeclareFunction;
 
-  let (_fnameLoc, functionName) = f.id;
+  let (_fnameLoec, functionName) = f.id;
   let (_annotLoc, functionType) = f.annot;
+
+  let overloads = {
+    let overloads = ref([]);
+    let i = ref(0);
+
+    while (i^ >= 0) {
+      switch (iter.peek(i^)) {
+      | (_, Ast.Statement.DeclareFunction({id: (_, overloadName)} as f))
+          when overloadName == functionName =>
+        iter.replace(i^, (loc, Ast.Statement.Empty));
+        overloads := [f, ...overloads^];
+        i := i^ + 1;
+      | _ => i := (-1)
+      | exception (Invalid_argument(_)) => i := (-1)
+      };
+    };
+
+    overloads^;
+  };
+
+  if (List.length(overloads) > 0) {
+    print_endline(
+      "FUNCTION "
+      ++ functionName
+      ++ " HAS "
+      ++ string_of_int(List.length(overloads))
+      ++ " OVERLOADS.",
+    );
+  };
 
   [
     AstUtils.makeExtern(
@@ -285,13 +323,23 @@ and handleWithStatement = (~scope, ~loc, w: Ast.Statement.With.t(Loc.t)) => {
     | (loc, Ast.Statement.Block(b)) => b.body
     | _ => raise(Not_found)
     };
-  body |> List.map(handleStatement(~scope=namespaceScope)) |> List.flatten;
+
+  body
+  |> MutableIterator.map(handleStatement(~scope=namespaceScope))
+  |> List.flatten;
 }
-and handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
+and handleStatement =
+    (
+      ~iter: MutableIterator.iter(Ast.Statement.t(Loc.t)),
+      ~scope,
+      (loc, statement),
+    )
+    : Parsetree.structure =>
   switch (statement) {
   | Ast.Statement.DeclareModule(m) => handleDeclareModule(~scope, ~loc, m)
   | Ast.Statement.DeclareVariable(v) => handleDeclareVariable(~scope, ~loc, v)
-  | Ast.Statement.DeclareFunction(f) => handleDeclareFunction(~scope, ~loc, f)
+  | Ast.Statement.DeclareFunction(f) =>
+    handleDeclareFunction(~iter, ~scope, ~loc, f)
   | Ast.Statement.DeclareTypeAlias(t) =>
     handleDeclareTypeAlias(~scope, ~loc, t)
   | Ast.Statement.DeclareInterface(i) =>
@@ -302,6 +350,7 @@ and handleStatement = (~scope, (loc, statement)) : Parsetree.structure =>
   | Ast.Statement.DeclareOpaqueType(t) =>
     handleDeclareOpaqueType(~scope, ~loc, t)
   | Ast.Statement.With(w) => handleWithStatement(~scope, ~loc, w)
+  | Ast.Statement.Empty => []
   | _ => []
   };
 
@@ -326,7 +375,7 @@ let parse = file => {
 
   let program =
     statements
-    |> List.map(handleStatement(~scope=programScope))
+    |> MutableIterator.map(handleStatement(~scope=programScope))
     |> List.flatten;
 
   Reason_toolchain.RE.print_implementation_with_comments(
