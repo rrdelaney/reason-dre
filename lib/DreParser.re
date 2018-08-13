@@ -8,6 +8,9 @@ exception TypeNameNameMustBeLowercase(string, Loc.t);
 exception InterfaceNameMustBeUppercase(string, Loc.t);
 exception ClassNameMustBeUppercase(string, Loc.t);
 exception ModuleExportsMustBeInModule(Loc.t);
+exception WithStatementMustUseIdentifier(Loc.t);
+exception WithStatementMustHaveABlock(Loc.t);
+exception CouldNotBuildName(Loc.t);
 
 type file = {
   source: string,
@@ -61,6 +64,7 @@ and handleDeclareVariable = (~scope: DynamicScope.scope, ~loc, v) => {
         ~moduleName=DynamicScope.moduleName(scope),
         ~namespaces=DynamicScope.namespaces(scope),
         ~defaultExport=false,
+        ~bindingName=None,
         ~externName=varName,
         ~externType=TypeUtils.convertType(~scope, varType),
       ),
@@ -72,6 +76,7 @@ and handleDeclareFunction =
       ~iter: MutableIterator.iter(Ast.Statement.t(Loc.t)),
       ~scope: DynamicScope.scope,
       ~loc,
+      ~overrideName=?,
       f,
     ) => {
   open Ast.Statement.DeclareFunction;
@@ -81,17 +86,13 @@ and handleDeclareFunction =
 
   let overloads = {
     let overloads = ref([]);
-    let i = ref(0);
-
-    while (i^ >= 0) {
-      switch (iter.peek(i^)) {
+    for (i in 0 to iter.length - 1) {
+      switch (iter.peek(i)) {
       | (_, Ast.Statement.DeclareFunction({id: (_, overloadName)} as f))
           when overloadName == functionName =>
-        iter.replace(i^, (loc, Ast.Statement.Empty));
+        iter.replace(i, (loc, Ast.Statement.Empty));
         overloads := [f, ...overloads^];
-        i := i^ + 1;
-      | _ => i := (-1)
-      | exception (Invalid_argument(_)) => i := (-1)
+      | _ => ()
       };
     };
 
@@ -99,28 +100,50 @@ and handleDeclareFunction =
   };
 
   if (List.length(overloads) > 0) {
-    print_endline(
-      "FUNCTION "
-      ++ functionName
-      ++ " HAS "
-      ++ string_of_int(List.length(overloads))
-      ++ " OVERLOADS.",
-    );
-  };
+    let firstFuncName = TypeUtils.buildTypeName(functionType);
 
-  [
-    AstUtils.makeExtern(
-      ~moduleName=DynamicScope.moduleName(scope),
-      ~namespaces=DynamicScope.namespaces(scope),
-      ~defaultExport=false,
-      ~externName=functionName,
-      ~externType=
-        TypeUtils.convertType(
-          ~scope=DynamicScope.clone(scope),
-          functionType,
-        ),
-    ),
-  ];
+    [
+      AstUtils.makeModule(
+        CasingUtils.makeModuleName(functionName),
+        [f, ...overloads]
+        |> List.mapi((i, f) => {
+             let overrideName =
+               if (i == 0) {
+                 let (loc, ft) = List.nth(overloads, 0).annot;
+                 let overrideName = TypeUtils.buildTypeName(ft);
+                 switch (DiffableTree.diff(overrideName, firstFuncName)) {
+                 | Some(name) => name
+                 | None => raise(CouldNotBuildName(loc))
+                 };
+               } else {
+                 let (loc, ft) = f.annot;
+                 let overrideName = TypeUtils.buildTypeName(ft);
+                 switch (DiffableTree.diff(firstFuncName, overrideName)) {
+                 | Some(name) => name
+                 | None => raise(CouldNotBuildName(loc))
+                 };
+               };
+             handleDeclareFunction(~iter, ~scope, ~loc, ~overrideName, f);
+           })
+        |> List.flatten,
+      ),
+    ];
+  } else {
+    [
+      AstUtils.makeExtern(
+        ~moduleName=DynamicScope.moduleName(scope),
+        ~namespaces=DynamicScope.namespaces(scope),
+        ~defaultExport=false,
+        ~bindingName=overrideName,
+        ~externName=functionName,
+        ~externType=
+          TypeUtils.convertType(
+            ~scope=DynamicScope.clone(scope),
+            functionType,
+          ),
+      ),
+    ];
+  };
 }
 and handleDeclareTypeAlias = (~scope: DynamicScope.scope, ~loc, t) => {
   open Ast.Statement.TypeAlias;
@@ -289,6 +312,7 @@ and handleDeclareModuleExports =
       ~moduleName=DynamicScope.moduleName(scope),
       ~namespaces=DynamicScope.namespaces(scope),
       ~defaultExport=true,
+      ~bindingName=None,
       ~externName,
       ~externType,
     ),
@@ -313,7 +337,7 @@ and handleWithStatement = (~scope, ~loc, w: Ast.Statement.With.t(Loc.t)) => {
   let name =
     switch (w._object) {
     | (loc, Ast.Expression.Identifier((_, name))) => name
-    | _ => raise(Not_found)
+    | _ => raise(WithStatementMustUseIdentifier(loc))
     };
 
   let namespaceScope = DynamicScope.withNamespace(name, scope);
@@ -321,7 +345,7 @@ and handleWithStatement = (~scope, ~loc, w: Ast.Statement.With.t(Loc.t)) => {
   let body =
     switch (w.body) {
     | (loc, Ast.Statement.Block(b)) => b.body
-    | _ => raise(Not_found)
+    | _ => raise(WithStatementMustHaveABlock(loc))
     };
 
   body

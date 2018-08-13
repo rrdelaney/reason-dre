@@ -2,6 +2,7 @@ open Flow_parser;
 open Ast_404;
 
 exception TypeNotSupported(Loc.t);
+exception TypeNameNotSupported(Loc.t);
 exception ObjectFieldNotSupported(Loc.t);
 exception TypeNotInScope(string, Loc.t);
 exception TypeVarsMustBeLowercase(string, Loc.t);
@@ -20,6 +21,31 @@ let rec extractNameFromGenericId = id =>
     extractNameFromGenericId(qualification) ++ "." ++ name
   };
 
+let rec buildTypeName =
+        ((loc, t): Ast.Type.t(Loc.t))
+        : DiffableTree.node(string) =>
+  switch (t) {
+  | Number => {value: "number", children: []}
+  | Void => {value: "void", children: []}
+  | Boolean => {value: "boolean", children: []}
+  | String => {value: "string", children: []}
+  | Function(f) =>
+    let (_loc, paramTypes) = f.params;
+    {
+      value: "function",
+      children:
+        List.map(
+          ((_loc, t): Ast.Type.Function.Param.t(Loc.t)) =>
+            buildTypeName(t.annot),
+          paramTypes.params,
+        ),
+    };
+
+  | Generic(tt) => {value: extractNameFromGenericId(tt.id), children: []}
+
+  | _ => raise(TypeNameNotSupported(loc))
+  };
+
 let rec convertType =
         (~scope, (loc, t): Ast.Type.t(Loc.t))
         : Parsetree.core_type =>
@@ -33,7 +59,7 @@ let rec convertType =
   | Boolean => AstUtils.makeNamedType("bool")
   | String => AstUtils.makeNamedType("string")
 
-  | Ast.Type.Function(f) =>
+  | Function(f) =>
     let (_loc, paramTypes) = f.params;
     let (retLoc, returnType) = f.return;
     let concreteParams = paramTypes.params;

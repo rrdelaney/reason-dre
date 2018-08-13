@@ -163,12 +163,23 @@ let makeBsOptionalAttribute = () : Parsetree.attribute => (
 );
 
 let makeExtern =
-    (~moduleName, ~namespaces, ~defaultExport, ~externName, ~externType)
+    (
+      ~moduleName,
+      ~namespaces,
+      ~defaultExport,
+      ~bindingName,
+      ~externName,
+      ~externType,
+    )
     : Parsetree.structure_item => {
   pstr_desc:
     Parsetree.Pstr_primitive({
       pval_name: {
-        txt: externName,
+        txt:
+          switch (bindingName) {
+          | Some(name) => name
+          | None => externName
+          },
         loc,
       },
       pval_type: externType,

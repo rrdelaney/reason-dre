@@ -29,3 +29,10 @@ let makeVariableName = s => {
 
   buf^;
 };
+
+let makeModuleName = s => {
+  let s = makeVariableName(s);
+  let head = String.uppercase_ascii(getFirstLetter(s));
+  let tail = String.sub(s, 1, String.length(s) - 1);
+  String.concat("", [head, tail]);
+};
