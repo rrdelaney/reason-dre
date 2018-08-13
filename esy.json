@@ -1,19 +1,11 @@
 {
   "name": "reason-dre",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "Declarative Reason bindings",
   "license": "MIT",
   "esy": {
-    "build": [
-      [
-        "refmterr",
-        "jbuilder",
-        "build"
-      ]
-    ],
-    "install": [
-      "esy-installer"
-    ],
+    "build": [["refmterr", "jbuilder", "build"]],
+    "install": ["esy-installer"],
     "buildsInSource": "_build"
   },
   "dependencies": {
