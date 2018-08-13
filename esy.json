@@ -1,6 +1,6 @@
 {
   "name": "reason-dre",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Declarative Reason bindings",
   "license": "MIT",
   "esy": {
