@@ -8,6 +8,7 @@ exception TypeNotInScope(string, Loc.t);
 exception TypeVarsMustBeLowercase(string, Loc.t);
 exception NotEnoughTypeArguments(string, int, int, Loc.t);
 exception TypeofMustBeOfClass(Loc.t);
+exception CouldNotBuildName(Loc.t);
 
 let loc = AstUtils.loc;
 
@@ -42,6 +43,8 @@ let rec buildTypeName =
     };
 
   | Generic(tt) => {value: extractNameFromGenericId(tt.id), children: []}
+
+  | StringLiteral({value}) => {value, children: []}
 
   | _ => raise(TypeNameNotSupported(loc))
   };
@@ -106,8 +109,18 @@ let rec convertType =
         concreteParamTypes,
       );
 
+    let hasOnlyStringLiterals =
+      List.for_all(
+        ((loc, param): Ast.Type.Function.Param.t(Loc.t)) =>
+          switch (param.annot) {
+          | (_, Ast.Type.StringLiteral(_)) => true
+          | _ => false
+          },
+        concreteParams,
+      );
+
     let concreteParamTypes =
-      if (hasOptional) {
+      if (hasOptional || hasOnlyStringLiterals) {
         List.concat([
           concreteParamTypes,
           [(None, AstUtils.makeNamedType("unit"))],
@@ -225,6 +238,8 @@ let rec convertType =
   | Nullable(t) =>
     AstUtils.makeAppliedType("Js.nullable", [convertType(~scope, t)])
 
+  | StringLiteral({value}) => AstUtils.makeFixedStringType(value)
+
   | Typeof(tt) => raise(TypeNotSupported(loc))
   | Interface(tt) => raise(TypeNotSupported(loc))
   | Empty => raise(TypeNotSupported(loc))
@@ -233,7 +248,6 @@ let rec convertType =
   | Union(a, b, c) => raise(TypeNotSupported(loc))
   | Intersection(a, b, c) => raise(TypeNotSupported(loc))
   | Tuple(tt) => raise(TypeNotSupported(loc))
-  | StringLiteral(tt) => raise(TypeNotSupported(loc))
   | NumberLiteral(tt) => raise(TypeNotSupported(loc))
   | BooleanLiteral(tt) => raise(TypeNotSupported(loc))
   | Exists => raise(TypeNotSupported(loc))
@@ -299,74 +313,154 @@ let makeMethods =
       ~interfaceName,
       ~interfaceType: Flow_parser.Ast.Type.Object.t(Flow_parser.Loc.t),
     )
-    : list(Parsetree.structure_item) =>
-  Ast.Type.Object.(
-    interfaceType.properties
-    |> List.filter(
-         fun
-         | Property((loc, {key: Identifier((_, "constructor"))})) => false
-         | Property((loc, {_method})) => _method
-         | SpreadProperty((loc, _))
-         | Indexer((loc, _))
-         | CallProperty((loc, _))
-         | InternalSlot((loc, _)) => true,
-       )
-    |> List.map(
-         fun
-         | Property((loc, prop)) => {
-             open Ast.Type.Object.Property;
-             let {key, value} = prop;
+    : list(Parsetree.structure_item) => {
+  open Ast.Type.Object;
 
-             let propName =
-               switch (key) {
-               | Ast.Expression.Object.Property.Identifier((loc, id)) => id
+  let makeAsDictMethod = (t: Ast.Type.Object.Indexer.t'(Loc.t)) => {
+    let converterType =
+      AstUtils.makeFunctionType(
+        [(None, AstUtils.makeNamedType("t"))],
+        convertType(~scope, t.value),
+      );
 
-               | Ast.Expression.Object.Property.Literal((loc, _))
-               | Ast.Expression.Object.Property.PrivateName((loc, _))
-               | Ast.Expression.Object.Property.Computed((loc, _)) =>
-                 raise(ObjectFieldNotSupported(loc))
-               };
+    AstUtils.makeIdentityExtern(
+      ~externName="asDict",
+      ~externType=converterType,
+    );
+  };
 
-             let propType =
-               switch (value) {
-               | Init(t) =>
-                 convertType(
-                   ~scope=
-                     DynamicScope.withInterface(
-                       ~name=interfaceName,
-                       ~typeParamCount=0,
-                       scope,
-                     ),
-                   t,
-                 )
-               | Get((loc, _))
-               | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
-               };
+  let getPropName = ({key}: Ast.Type.Object.Property.t'(Loc.t)) =>
+    switch (key) {
+    | Ast.Expression.Object.Property.Identifier((loc, id)) => id
+    | Ast.Expression.Object.Property.Literal((loc, _))
+    | Ast.Expression.Object.Property.PrivateName((loc, _))
+    | Ast.Expression.Object.Property.Computed((loc, _)) =>
+      raise(ObjectFieldNotSupported(loc))
+    };
 
-             AstUtils.makeMethodExtern(
-               ~methodName=propName,
-               ~methodType=propType,
-             );
-           }
+  let getPropFlowType = ({value}: Ast.Type.Object.Property.t'(Loc.t)) =>
+    switch (value) {
+    | Init(t) => t
+    | Get((loc, _))
+    | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
+    };
 
-         | Indexer((loc, t)) => {
-             let converterType =
-               AstUtils.makeFunctionType(
-                 [(None, AstUtils.makeNamedType("t"))],
-                 convertType(~scope, t.value),
-               );
+  let getPropType = ({value}: Ast.Type.Object.Property.t'(Loc.t)) =>
+    switch (value) {
+    | Init(t) =>
+      convertType(
+        ~scope=
+          DynamicScope.withInterface(
+            ~name=interfaceName,
+            ~typeParamCount=0,
+            scope,
+          ),
+        t,
+      )
+    | Get((loc, _))
+    | Set((loc, _)) => raise(ObjectFieldNotSupported(loc))
+    };
 
-             AstUtils.makeIdentityExtern(
-               ~externName="asDict",
-               ~externType=converterType,
-             );
-           }
+  let methods =
+    List.filter(
+      fun
+      | Property((loc, {key: Identifier((_, "constructor"))})) => false
+      | Property((loc, {_method})) => _method
+      | SpreadProperty((loc, _))
+      | Indexer((loc, _))
+      | CallProperty((loc, _))
+      | InternalSlot((loc, _)) => true,
+      interfaceType.properties,
+    );
 
-         | SpreadProperty((loc, _))
-         | CallProperty((loc, _))
-         | InternalSlot((loc, _)) => raise(ObjectFieldNotSupported(loc)),
-       )
-  );
+  MutableIterator.map(
+    (~iter, meth) =>
+      switch (meth) {
+      | Property((loc, {key: Identifier((_, "$DRE_INTERNAL_SKIP"))})) => []
+      | Property((loc, prop)) =>
+        let propName = getPropName(prop);
+        let propType = getPropType(prop);
+
+        let overloads = {
+          let overloads = ref([]);
+          for (i in 0 to iter.length - 1) {
+            switch (iter.peek(i)) {
+            | Property((
+                overloadLoc,
+                {key: Ast.Expression.Object.Property.Identifier((loc, id))} as overloadProp,
+              ))
+                when id == propName =>
+              iter.replace(
+                i,
+                Property((
+                  overloadLoc,
+                  {
+                    ...overloadProp,
+                    key:
+                      Ast.Expression.Object.Property.Identifier((
+                        loc,
+                        "$DRE_INTERNAL_SKIP",
+                      )),
+                  },
+                )),
+              );
+              overloads := [overloadProp, ...overloads^];
+            | _ => ()
+            };
+          };
+
+          overloads^;
+        };
+
+        [
+          if (List.length(overloads) > 0) {
+            let firstFuncName = buildTypeName(getPropFlowType(prop));
+
+            AstUtils.makeModule(
+              CasingUtils.makeModuleName(propName),
+              [prop, ...overloads]
+              |> List.mapi((i, f) => {
+                   let overrideName =
+                     if (i == 0) {
+                       let pft = getPropFlowType(List.nth(overloads, 0));
+                       let overrideName = buildTypeName(pft);
+                       switch (DiffableTree.diff(overrideName, firstFuncName)) {
+                       | Some(name) => name
+                       | None => raise(CouldNotBuildName(loc))
+                       };
+                     } else {
+                       let pft = getPropFlowType(f);
+                       let overrideName = buildTypeName(pft);
+                       switch (DiffableTree.diff(firstFuncName, overrideName)) {
+                       | Some(name) => name
+                       | None => raise(CouldNotBuildName(loc))
+                       };
+                     };
+                   AstUtils.makeMethodExtern(
+                     ~bindingName=Some(overrideName),
+                     ~methodName=getPropName(f),
+                     ~methodType=getPropType(f),
+                   );
+                 }),
+            );
+          } else {
+            AstUtils.makeMethodExtern(
+              ~bindingName=None,
+              ~methodName=propName,
+              ~methodType=propType,
+            );
+          },
+        ];
+
+      | Indexer((loc, t)) => [makeAsDictMethod(t)]
+      | SpreadProperty((loc, _))
+      | CallProperty((loc, _))
+      | InternalSlot((loc, _)) => raise(ObjectFieldNotSupported(loc))
+      },
+    methods,
+  )
+  |> List.flatten;
+};
 
 let makeInterfaceDeclaration =
     (

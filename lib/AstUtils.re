@@ -2,70 +2,6 @@ open Ast_404;
 
 let loc = Location.none;
 
-let makeNamedType = typeName : Parsetree.core_type => {
-  ptyp_desc:
-    Parsetree.Ptyp_constr({txt: Longident.Lident(typeName), loc}, []),
-  ptyp_loc: loc,
-  ptyp_attributes: [],
-};
-
-let makeNamedTypeVar = typeName : Parsetree.core_type => {
-  ptyp_desc: Parsetree.Ptyp_var(typeName),
-  ptyp_loc: loc,
-  ptyp_attributes: [],
-};
-
-let makeAppliedType = (typeName, args) : Parsetree.core_type => {
-  ptyp_desc:
-    Parsetree.Ptyp_constr({txt: Longident.Lident(typeName), loc}, args),
-  ptyp_loc: loc,
-  ptyp_attributes: [],
-};
-
-/** Takes a list of tuples: (label if optional, type) */
-let makeFunctionType = (params, returnType) =>
-  List.fold_right(
-    ((name, paramType), t) =>
-      Parsetree.{
-        ptyp_desc:
-          Parsetree.Ptyp_arrow(
-            switch (name) {
-            | Some(name) => Asttypes.Optional(name)
-            | None => Asttypes.Nolabel
-            },
-            paramType,
-            t,
-          ),
-        ptyp_loc: loc,
-        ptyp_attributes: [],
-      },
-    params,
-    returnType,
-  );
-
-let makeObjectType = fields : Parsetree.core_type => {
-  ptyp_desc:
-    Parsetree.Ptyp_constr(
-      {txt: Longident.Lident("Js.t"), loc},
-      [
-        {
-          ptyp_desc:
-            Parsetree.Ptyp_object(
-              List.map(
-                ((fieldName, fieldType)) => (fieldName, [], fieldType),
-                fields,
-              ),
-              Asttypes.Closed,
-            ),
-          ptyp_loc: loc,
-          ptyp_attributes: [],
-        },
-      ],
-    ),
-  ptyp_loc: loc,
-  ptyp_attributes: [],
-};
-
 let makeBsModuleAttibute = (~moduleName, ~defaultExport) : Parsetree.attribute => (
   {txt: "bs.module", loc},
   if (defaultExport) {
@@ -162,6 +98,97 @@ let makeBsOptionalAttribute = () : Parsetree.attribute => (
   Parsetree.PStr([]),
 );
 
+let makeBsAsAttribute = fixedString : Parsetree.attribute => (
+  {txt: "bs.as", loc},
+  Parsetree.PStr([
+    {
+      pstr_desc:
+        Parsetree.Pstr_eval(
+          {
+            pexp_desc:
+              Parsetree.Pexp_constant(
+                Parsetree.Pconst_string(fixedString, None),
+              ),
+            pexp_loc: loc,
+            pexp_attributes: [],
+          },
+          [],
+        ),
+      pstr_loc: loc,
+    },
+  ]),
+);
+
+let makeNamedType = typeName : Parsetree.core_type => {
+  ptyp_desc:
+    Parsetree.Ptyp_constr({txt: Longident.Lident(typeName), loc}, []),
+  ptyp_loc: loc,
+  ptyp_attributes: [],
+};
+
+let makeNamedTypeVar = typeName : Parsetree.core_type => {
+  ptyp_desc: Parsetree.Ptyp_var(typeName),
+  ptyp_loc: loc,
+  ptyp_attributes: [],
+};
+
+let makeAppliedType = (typeName, args) : Parsetree.core_type => {
+  ptyp_desc:
+    Parsetree.Ptyp_constr({txt: Longident.Lident(typeName), loc}, args),
+  ptyp_loc: loc,
+  ptyp_attributes: [],
+};
+
+let makeFixedStringType = fixedString : Parsetree.core_type => {
+  ptyp_desc: Parsetree.Ptyp_any,
+  ptyp_loc: loc,
+  ptyp_attributes: [makeBsAsAttribute(fixedString)],
+};
+
+/** Takes a list of tuples: (label if optional, type) */
+let makeFunctionType = (params, returnType) =>
+  List.fold_right(
+    ((name, paramType), t) =>
+      Parsetree.{
+        ptyp_desc:
+          Parsetree.Ptyp_arrow(
+            switch (name) {
+            | Some(name) => Asttypes.Optional(name)
+            | None => Asttypes.Nolabel
+            },
+            paramType,
+            t,
+          ),
+        ptyp_loc: loc,
+        ptyp_attributes: [],
+      },
+    params,
+    returnType,
+  );
+
+let makeObjectType = fields : Parsetree.core_type => {
+  ptyp_desc:
+    Parsetree.Ptyp_constr(
+      {txt: Longident.Lident("Js.t"), loc},
+      [
+        {
+          ptyp_desc:
+            Parsetree.Ptyp_object(
+              List.map(
+                ((fieldName, fieldType)) => (fieldName, [], fieldType),
+                fields,
+              ),
+              Asttypes.Closed,
+            ),
+          ptyp_loc: loc,
+          ptyp_attributes: [],
+        },
+      ],
+    ),
+  ptyp_loc: loc,
+  ptyp_attributes: [],
+};
+
 let makeExtern =
     (
       ~moduleName,
@@ -249,11 +276,17 @@ let makeNewExtern =
   pstr_loc: loc,
 };
 
-let makeMethodExtern = (~methodName, ~methodType) : Parsetree.structure_item => {
+let makeMethodExtern =
+    (~bindingName, ~methodName, ~methodType)
+    : Parsetree.structure_item => {
   pstr_desc:
     Parsetree.Pstr_primitive({
       pval_name: {
-        txt: methodName,
+        txt:
+          switch (bindingName) {
+          | Some(name) => name
+          | None => methodName
+          },
         loc,
       },
       pval_type:

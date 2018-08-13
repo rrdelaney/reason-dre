@@ -194,6 +194,10 @@ let withBufferedError = fn =>
     bufferErrMsg();
     bufferErrorLoc(~loc, ~msg="This type isn't supported yet, sorry!");
 
+  | TypeUtils.TypeNameNotSupported(loc) =>
+    bufferErrMsg();
+    bufferErrorLoc(~loc, ~msg="This type isn't supported yet, sorry!");
+
   | TypeUtils.TypeNotInScope(typeName, loc) =>
     bufferErrMsg();
     bufferErrorLoc(
@@ -239,4 +243,23 @@ let withBufferedError = fn =>
       ~msg="module.exports can only be declared inside of a module!",
     );
     bufferHint(~msg="Did you mean to wrap this in a \"declare module\"?");
+
+  | TypeUtils.CouldNotBuildName(loc) =>
+    bufferErrMsg();
+    bufferErrorLoc(
+      ~loc,
+      ~msg="Could not determine a unique name for this function overload.",
+    );
+    bufferHint(~msg="Is this the same type as the overloaded function?");
+
+  | DreParser.WithStatementMustHaveABlock(loc) =>
+    bufferErrMsg();
+    bufferErrorLoc(
+      ~loc,
+      ~msg="\"with\" statements must have a block following them.",
+    );
+
+  | DreParser.WithStatementMustUseIdentifier(loc) =>
+    bufferErrMsg();
+    bufferErrorLoc(~loc, ~msg="\"with\" statements must use an identfier.");
   };

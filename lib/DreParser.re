@@ -10,7 +10,6 @@ exception ClassNameMustBeUppercase(string, Loc.t);
 exception ModuleExportsMustBeInModule(Loc.t);
 exception WithStatementMustUseIdentifier(Loc.t);
 exception WithStatementMustHaveABlock(Loc.t);
-exception CouldNotBuildName(Loc.t);
 
 type file = {
   source: string,
@@ -113,14 +112,14 @@ and handleDeclareFunction =
                  let overrideName = TypeUtils.buildTypeName(ft);
                  switch (DiffableTree.diff(overrideName, firstFuncName)) {
                  | Some(name) => name
-                 | None => raise(CouldNotBuildName(loc))
+                 | None => raise(TypeUtils.CouldNotBuildName(loc))
                  };
                } else {
                  let (loc, ft) = f.annot;
                  let overrideName = TypeUtils.buildTypeName(ft);
                  switch (DiffableTree.diff(firstFuncName, overrideName)) {
                  | Some(name) => name
-                 | None => raise(CouldNotBuildName(loc))
+                 | None => raise(TypeUtils.CouldNotBuildName(loc))
                  };
                };
              handleDeclareFunction(~iter, ~scope, ~loc, ~overrideName, f);
